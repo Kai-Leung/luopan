@@ -1,0 +1,42 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Local databases and runtime data
+*.db
+*.sqlite
+*.sqlite3
+data/dev/*
+data/test/*
+storage/dev/*
+storage/test/*
+01_arch_dir/**/data/dev/*
+01_arch_dir/**/data/test/*
+01_arch_dir/**/storage/dev/*
+01_arch_dir/**/storage/test/*
+!data/.gitkeep
+!storage/.gitkeep
+!01_arch_dir/**/data/.gitkeep
+!01_arch_dir/**/storage/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

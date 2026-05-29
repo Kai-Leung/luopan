@@ -1,0 +1,15 @@
+{
+  "name": "compass-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/h5",
+    "apps/pc",
+    "packages/*"
+  ],
+  "scripts": {
+    "check": "echo \"Use app-specific check scripts\"",
+    "build": "echo \"Use app-specific build scripts\"",
+    "test": "echo \"Use app-specific test scripts\""
+  }
+}

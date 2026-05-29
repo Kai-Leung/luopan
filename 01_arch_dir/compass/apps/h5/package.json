@@ -1,0 +1,14 @@
+{
+  "name": "@compass/h5",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "check": "tsc -b",
+    "test": "echo \"no h5 tests yet\""
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

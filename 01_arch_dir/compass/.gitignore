@@ -1,0 +1,41 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+build/
+.cache/
+.vite/
+.vercel/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Data / storage
+/data/dev/*
+/data/test/*
+/storage/dev/*
+/storage/test/*
+!/data/.gitkeep
+!/data/dev/.gitkeep
+!/data/test/.gitkeep
+!/storage/.gitkeep
+!/storage/dev/.gitkeep
+!/storage/test/.gitkeep
+
+# DB / logs
+*.db
+*.sqlite
+*.sqlite3
+logs/
+*.log
+
+# OS
+.DS_Store
