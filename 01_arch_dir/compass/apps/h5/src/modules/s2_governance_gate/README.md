@@ -1,3 +1,5 @@
 # s2_governance_gate
 
-H5 module placeholder. 前端只做展示、交互、状态承接，不做事实裁决。
+H5 S2 治理闸门适配层。当前复用 `input_flow` 中既有实现。
+
+边界：前端只展示后端返回的治理状态，不做校验裁决。

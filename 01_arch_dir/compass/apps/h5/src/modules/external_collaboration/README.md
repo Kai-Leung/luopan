@@ -1,3 +1,5 @@
 # external_collaboration
 
-H5 module placeholder. 前端只做展示、交互、状态承接，不做事实裁决。
+外部协同入口预留目录。
+
+边界：外部输入必须进入 L0/L1/S2，不得直接成为正式事实。

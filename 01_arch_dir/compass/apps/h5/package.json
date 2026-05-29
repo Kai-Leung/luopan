@@ -7,8 +7,17 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "check": "tsc -b",
+    "preview": "vite preview",
     "test": "echo \"no h5 tests yet\""
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.15",
+    "@types/react-dom": "19.2.3",
+    "typescript": "6.0.3",
+    "vite": "8.0.14"
+  }
 }

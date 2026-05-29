@@ -1,2 +1,24 @@
-<!doctype html>
-<html lang="zh-CN"><head><meta charset="UTF-8" /><title>Compass</title></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compass</title>
+</head>
+<body>
+  <div id="root"><div style="padding:20px;font-family:sans-serif;text-align:center;color:#666;">加载中：HTML 已加载</div></div>
+  <script>
+    (function () {
+      try {
+        var root = document.getElementById('root');
+        if (root) {
+          root.innerHTML = '<div style="padding:20px;font-family:sans-serif;text-align:center;color:#666;">加载中：HTML 内联脚本已执行</div>';
+        }
+      } catch (error) {
+        // 启动诊断兜底，不输出技术细节。
+      }
+    })();
+  </script>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
