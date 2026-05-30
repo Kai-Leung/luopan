@@ -15,7 +15,7 @@ from app.db.repositories.governance_repository import get_governance_result as l
 from app.db.repositories.json_utils import load_json_field as layered_load_json_field
 from app.db.repositories.raw_input_repository import get_raw_input as layered_get_raw_input
 from app.db.repositories.storage_repository import ensure_minimal_storage_tables as layered_ensure_storage
-from app.db.session import DATABASE_URL, DEVELOPMENT_DATABASE_URL, SessionLocal, resolve_database_url
+from app.db.session import DATABASE_URL, DEVELOPMENT_DATABASE_URL, TEST_DATABASE_URL, DEVELOPMENT_DATABASE_PATH, SessionLocal, resolve_database_url
 from app.modules.l0_input.schemas import RawInputCreate
 from app.modules.l0_input.service import receive_raw_input
 from app.modules.l1_candidate.schemas import L1CandidateCreate
@@ -28,13 +28,22 @@ from app.modules.s2_governance_gate.service import check_candidate_governance
 pytestmark = pytest.mark.usefixtures("reset_workflow_state")
 
 
-def test_default_database_url_is_memory_when_env_unset():
+def test_pytest_default_database_url_uses_isolated_memory_database():
     if "COMPASS_DATABASE_URL" not in os.environ and "DATABASE_URL" not in os.environ:
-        assert DATABASE_URL == DEVELOPMENT_DATABASE_URL
+        assert DATABASE_URL == TEST_DATABASE_URL
 
 
-def test_development_database_url_defaults_to_memory():
+def test_development_database_url_uses_project_file_database():
+    assert DEVELOPMENT_DATABASE_URL.startswith("sqlite:///")
+    assert str(DEVELOPMENT_DATABASE_PATH).endswith("data/dev/compass_dev.sqlite3")
+
+
+def test_development_database_url_defaults_to_file_database():
     assert resolve_database_url(app_env="development", explicit_database_url="") == DEVELOPMENT_DATABASE_URL
+
+
+def test_test_database_url_defaults_to_memory():
+    assert resolve_database_url(app_env="test", explicit_database_url="") == TEST_DATABASE_URL
 
 
 def test_production_database_url_requires_explicit_value():

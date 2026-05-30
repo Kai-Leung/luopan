@@ -304,6 +304,7 @@ export default function H5MainPage() {
         governance_id: item.governance_id,
         governance_status: item.governance_status,
         review_action: 'confirm',
+        pending_id: item.pending_id,
       });
       const fact = await requestFactCreationAfterConfirmation({
         raw_input_id: item.raw_input_id,

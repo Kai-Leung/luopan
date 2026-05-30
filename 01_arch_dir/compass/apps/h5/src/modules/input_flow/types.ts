@@ -73,6 +73,7 @@ export interface ManualConfirmationReviewRequest {
   governance_id: string;
   governance_status: string;
   review_action: "confirm" | "return_for_completion" | "reject";
+  pending_id?: string;
 }
 
 export interface ManualConfirmationReviewResponse {
