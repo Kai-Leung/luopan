@@ -1,5 +1,5 @@
 from .candidate_repository import create_candidate, get_candidate, update_candidate_payload, update_candidate_status
-from .fact_record_repository import create_fact_record, get_fact_record
+from .fact_record_repository import create_fact_record, get_fact_record, list_fact_records
 from .governance_repository import create_governance_result, get_governance_result
 from .json_utils import load_json_field
 from .manual_review_repository import create_manual_review, get_manual_review
@@ -17,6 +17,7 @@ __all__ = [
     "ensure_minimal_storage_tables",
     "get_candidate",
     "get_fact_record",
+    "list_fact_records",
     "get_governance_result",
     "get_manual_review",
     "get_project_asset",

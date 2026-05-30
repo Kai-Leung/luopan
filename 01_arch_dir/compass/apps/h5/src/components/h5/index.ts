@@ -12,3 +12,4 @@ export { SideDrawer } from './overlays/SideDrawer';
 export { TaskRow } from './overlays/TaskRow';
 export { TodoListSheet } from './overlays/TodoListSheet';
 export { UploadChoiceSheet } from './overlays/UploadChoiceSheet';
+export { default as FactQueryPanel } from './overlays/FactQueryPanel';

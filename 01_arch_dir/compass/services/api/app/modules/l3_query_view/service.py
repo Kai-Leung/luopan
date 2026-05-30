@@ -8,9 +8,11 @@ import logging
 from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.db.repositories import get_fact_record, load_json_field
+from typing import Optional
+
+from app.db.repositories import get_fact_record, list_fact_records, load_json_field
 from app.db.session import SessionLocal
-from app.modules.l3_query_view.schemas import L3FactViewResponse
+from app.modules.l3_query_view.schemas import L3FactListResponse, L3FactListItem, L3FactViewResponse
 
 logger = logging.getLogger(__name__)
 
@@ -40,5 +42,62 @@ def get_l3_fact_view(fact_id: str) -> L3FactViewResponse:
             fact_status=row.fact_status,
             created_at=row.created_at,
         )
+    finally:
+        db.close()
+
+
+def _extract_summary(fact_payload: dict) -> str:
+    """Extract a human-readable summary from fact_payload."""
+    candidates = (
+        fact_payload.get("candidate_summary")
+        or fact_payload.get("fact_summary")
+        or fact_payload.get("text")
+        or fact_payload.get("candidate_payload", {}).get("fact_summary", "")
+    )
+    if candidates:
+        return str(candidates)[:120]
+    return "(no summary)"
+
+
+def _extract_source_type(fact_payload: dict) -> str:
+    """Extract source_type from fact_payload, default to manual_confirmation."""
+    return fact_payload.get("source_type") or fact_payload.get("raw_payload", {}).get("source_type") or "manual_confirmation"
+
+
+def list_l3_facts(
+    *,
+    fact_type: Optional[str] = None,
+    keyword: Optional[str] = None,
+    limit: int = 20,
+    offset: int = 0,
+) -> L3FactListResponse:
+    """List L3 fact records with optional filtering. Read-only."""
+    db = SessionLocal()
+    try:
+        rows = list_fact_records(db, fact_type=fact_type, keyword=keyword, limit=limit, offset=offset)
+        items = []
+        for row in rows:
+            try:
+                fact_payload = load_json_field(row.fact_payload)
+            except ValueError:
+                fact_payload = {}
+            summary = _extract_summary(fact_payload)
+            source = _extract_source_type(fact_payload)
+            items.append(
+                L3FactListItem(
+                    fact_id=row.fact_id,
+                    fact_type=row.fact_type,
+                    fact_payload_summary=summary,
+                    source_type=source,
+                    fact_status=row.fact_status,
+                    created_at=row.created_at,
+                )
+            )
+
+        # total count (same filters, no pagination)
+        all_rows = list_fact_records(db, fact_type=fact_type, keyword=keyword, limit=10000, offset=0)
+        total = len(all_rows)
+
+        return L3FactListResponse(items=items, total=total)
     finally:
         db.close()

@@ -6,6 +6,20 @@ export interface L3FactViewResponse {
   created_at: string;
 }
 
+export interface L3FactListItem {
+  fact_id: string;
+  fact_type: string;
+  fact_payload_summary: string;
+  source_type: string;
+  fact_status: "active_fact";
+  created_at: string;
+}
+
+export interface L3FactListResponse {
+  items: L3FactListItem[];
+  total: number;
+}
+
 export interface SourceOfTruthFactRequest {
   raw_input_id: string;
   candidate_id: string;

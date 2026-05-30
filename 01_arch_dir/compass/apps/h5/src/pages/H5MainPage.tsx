@@ -14,6 +14,7 @@ import {
   UploadChoiceSheet,
 } from '../components/h5';
 import { Hamburger } from '../components/h5/icons/H5Icons';
+import FactQueryPanel from '../components/h5/overlays/FactQueryPanel';
 import {
   checkGovernance,
   createCandidate,
@@ -100,6 +101,7 @@ export default function H5MainPage() {
   const [todoOpen, setTodoOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [factQueryOpen, setFactQueryOpen] = useState(false);
   const [recentPhotos, setRecentPhotos] = useState<string[]>([]);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<InteractionMessage[]>(loadStoredMessages);
@@ -446,6 +448,7 @@ export default function H5MainPage() {
         <button className="h5-header-btn" onClick={() => setDrawerOpen(true)} aria-label="打开侧边菜单"><Hamburger /></button>
         <h1 className="h5-header-title">罗盘</h1>
         <div className="h5-header-spacer" aria-hidden="true" />
+        <button className="h5-header-btn" onClick={() => setFactQueryOpen(true)} title="查询事实">📋</button>
       </header>
 
       <section className="h5-task-card">
@@ -513,6 +516,7 @@ export default function H5MainPage() {
         }
         event.currentTarget.value = '';
       }} />
+      {factQueryOpen && <FactQueryPanel onClose={() => setFactQueryOpen(false)} />}
       <RenderStageMarker stage="H5MainPage 子组件渲染完成" />
     </div>
   );

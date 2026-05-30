@@ -1,8 +1,249 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Compass API",
-    "version": "0.1.0"
+    "title": "Compass API - L3",
+    "version": "0.1.1"
   },
-  "paths": {}
+  "paths": {
+    "/api/v1/l3/facts": {
+      "get": {
+        "tags": [
+          "l3-facts"
+        ],
+        "summary": "List Facts",
+        "description": "List L3 facts with optional filtering and pagination. Read-only.",
+        "operationId": "list_facts_api_v1_l3_facts_get",
+        "parameters": [
+          {
+            "name": "fact_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by fact type",
+              "title": "Fact Type"
+            },
+            "description": "Filter by fact type"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search keyword in fact_payload",
+              "title": "Keyword"
+            },
+            "description": "Search keyword in fact_payload"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "description": "Max items per page",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Max items per page"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Pagination offset",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Pagination offset"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L3FactListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/l3/facts/{fact_id}": {
+      "get": {
+        "tags": [
+          "l3-facts"
+        ],
+        "summary": "Read Fact",
+        "operationId": "read_fact_api_v1_l3_facts__fact_id__get",
+        "parameters": [
+          {
+            "name": "fact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Fact Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L3FactViewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "L3FactListItem": {
+        "properties": {
+          "fact_id": {
+            "type": "string",
+            "title": "Fact Id"
+          },
+          "fact_type": {
+            "type": "string",
+            "title": "Fact Type"
+          },
+          "fact_payload_summary": {
+            "type": "string",
+            "title": "Fact Payload Summary"
+          },
+          "source_type": {
+            "type": "string",
+            "title": "Source Type"
+          },
+          "fact_status": {
+            "type": "string",
+            "const": "active_fact",
+            "title": "Fact Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fact_id",
+          "fact_type",
+          "fact_payload_summary",
+          "source_type",
+          "fact_status",
+          "created_at"
+        ],
+        "title": "L3FactListItem"
+      },
+      "L3FactListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/L3FactListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "L3FactListResponse"
+      },
+      "L3FactViewResponse": {
+        "properties": {
+          "fact_id": {
+            "type": "string",
+            "title": "Fact Id"
+          },
+          "fact_type": {
+            "type": "string",
+            "title": "Fact Type"
+          },
+          "fact_payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Fact Payload"
+          },
+          "fact_status": {
+            "type": "string",
+            "const": "active_fact",
+            "title": "Fact Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fact_id",
+          "fact_type",
+          "fact_payload",
+          "fact_status",
+          "created_at"
+        ],
+        "title": "L3FactViewResponse"
+      }
+    }
+  }
 }

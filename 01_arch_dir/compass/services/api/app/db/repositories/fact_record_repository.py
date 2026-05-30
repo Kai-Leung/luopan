@@ -43,3 +43,26 @@ def get_fact_record(db: Session, fact_id: str) -> Optional["FactRecord"]:
     from app.db.models import FactRecord
 
     return db.query(FactRecord).filter(FactRecord.fact_id == fact_id).first()
+
+
+def list_fact_records(
+    db: Session,
+    *,
+    fact_type: Optional[str] = None,
+    keyword: Optional[str] = None,
+    limit: int = 20,
+    offset: int = 0,
+) -> list["FactRecord"]:
+    """List fact_records with optional filtering and pagination. Read-only."""
+    from app.db.models import FactRecord
+
+    query = db.query(FactRecord)
+
+    if fact_type:
+        query = query.filter(FactRecord.fact_type == fact_type)
+
+    if keyword:
+        like_pattern = f"%{keyword}%"
+        query = query.filter(FactRecord.fact_payload.like(like_pattern))
+
+    return query.order_by(FactRecord.created_at.desc()).offset(offset).limit(limit).all()
