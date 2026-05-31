@@ -3,20 +3,28 @@ import { requestJSON } from '../input_flow/api/client';
 
 const L3_BASE = "/api/v1/l3/facts";
 
-export async function listL3Facts(params?: {
+export function buildL3FactListPath(params?: {
   fact_type?: string;
   keyword?: string;
   limit?: number;
   offset?: number;
-}): Promise<L3FactListResponse> {
+}): string {
   const query = new URLSearchParams();
   if (params?.fact_type) query.set("fact_type", params.fact_type);
   if (params?.keyword) query.set("keyword", params.keyword);
   if (params?.limit !== undefined) query.set("limit", String(params.limit));
   if (params?.offset !== undefined) query.set("offset", String(params.offset));
   const qs = query.toString();
-  const url = qs ? `${L3_BASE}?${qs}` : L3_BASE;
-  return requestJSON<L3FactListResponse>(url, {
+  return qs ? `${L3_BASE}?${qs}` : L3_BASE;
+}
+
+export async function listL3Facts(params?: {
+  fact_type?: string;
+  keyword?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<L3FactListResponse> {
+  return requestJSON<L3FactListResponse>(buildL3FactListPath(params), {
     method: "GET",
     errorMessage: "事实列表加载失败",
   });

@@ -2383,6 +2383,182 @@ body {
   word-break: break-all;
 }
 
+.l4-analysis-panel {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #E8ECF7;
+}
+
+.l4-analysis-boundary,
+.l4-analysis-empty {
+  margin-bottom: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6B7280;
+}
+
+.l4-analysis-boundary {
+  padding: 9px 10px;
+  background: #FFF8E6;
+  border-radius: 10px;
+  color: #6F4E00;
+}
+
+.l4-analysis-btn {
+  width: 100%;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 12px;
+  background: #10142A;
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.l4-analysis-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.l4-analysis-result {
+  display: grid;
+  gap: 2px;
+}
+
+.l5-recommendation-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #E8ECF7;
+}
+
+.l5-recommendation-boundary,
+.l5-recommendation-empty {
+  margin-bottom: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6B7280;
+}
+
+.l5-recommendation-boundary {
+  padding: 9px 10px;
+  background: #EEF8F1;
+  border-radius: 10px;
+  color: #1F6B3A;
+}
+
+.l5-recommendation-btn {
+  width: 100%;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 12px;
+  background: #236B3D;
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.l5-recommendation-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.l5-recommendation-result {
+  display: grid;
+  gap: 2px;
+}
+
+.l6-execution-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #E8ECF7;
+}
+
+.l6-execution-boundary,
+.l6-execution-empty {
+  margin-bottom: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6B7280;
+}
+
+.l6-execution-boundary {
+  padding: 9px 10px;
+  background: #EEF5FF;
+  border-radius: 10px;
+  color: #234C83;
+}
+
+.l6-execution-btn {
+  width: 100%;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 12px;
+  background: #24598F;
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.l6-execution-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.l6-execution-result {
+  display: grid;
+  gap: 2px;
+}
+
+.l7-feedback-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #E8ECF7;
+}
+
+.l7-feedback-boundary,
+.l7-feedback-empty {
+  margin-bottom: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6B7280;
+}
+
+.l7-feedback-boundary {
+  padding: 9px 10px;
+  background: #F6F0FF;
+  border-radius: 10px;
+  color: #4A2C75;
+}
+
+.l7-feedback-btn {
+  width: 100%;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 12px;
+  background: #5F3FA0;
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.l7-feedback-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.l7-feedback-result {
+  display: grid;
+  gap: 2px;
+}
+
 /* 桌面端居中适配 */
 @media (min-width: 431px) {
   .fact-query-panel {

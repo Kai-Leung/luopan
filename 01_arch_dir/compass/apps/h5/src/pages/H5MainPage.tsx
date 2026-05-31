@@ -15,6 +15,8 @@ import {
 } from '../components/h5';
 import { Hamburger } from '../components/h5/icons/H5Icons';
 import FactQueryPanel from '../components/h5/overlays/FactQueryPanel';
+import { listL3Facts } from '../modules/l3_query_view/api';
+import type { L3FactListItem } from '../modules/facts_view/types';
 import {
   checkGovernance,
   createCandidate,
@@ -203,6 +205,10 @@ export default function H5MainPage() {
 
   async function submitText(value: string, action: InteractionAction = '录入') {
     appendMessage({ type: 'text', action, content: value });
+    if (action === '查') {
+      await queryExistingFacts(value);
+      return;
+    }
     if (!shouldSubmitToL0(action)) {
       appendMessage({ type: 'status', action, content: `${action}能力待接入，未进入 L0。` });
       showToast(`${action}能力待接入，未进入 L0。`);
@@ -228,6 +234,51 @@ export default function H5MainPage() {
 
   function shouldSubmitToL0(action: InteractionAction): boolean {
     return action === '录入';
+  }
+
+  async function queryExistingFacts(keyword: string) {
+    const normalizedKeyword = keyword.trim();
+    if (!normalizedKeyword) {
+      appendMessage({ type: 'status', action: '查', content: '请输入查询关键词。' });
+      return;
+    }
+    try {
+      const response = await listL3Facts({
+        keyword: normalizedKeyword,
+        limit: 5,
+        offset: 0,
+      });
+      appendMessage({
+        type: 'status',
+        action: '查',
+        content: formatReadonlyFactQueryMessage(normalizedKeyword, response.items, response.total),
+      });
+      showToast(response.items.length > 0 ? '已返回 L3 只读查询结果。' : '未查询到已有事实。');
+    } catch (error) {
+      appendMessage({
+        type: 'status',
+        action: '查',
+        content: `已有事实查询失败。\n查询关键词：${normalizedKeyword}\n本次查询不产生正式事实，不写入 L0/L1/L2，也不作为 AI 分析结论。`,
+      });
+      showToast(error instanceof Error && error.message.trim() ? error.message.trim() : '已有事实查询失败。');
+    }
+  }
+
+  function formatReadonlyFactQueryMessage(keyword: string, items: L3FactListItem[], total: number): string {
+    const header = [
+      '已有事实查询结果',
+      `查询关键词：${keyword}`,
+      '说明：本次为 L3 只读查询，不产生正式事实，不写入 L0/L1/L2，不作为 AI 分析结论。',
+    ];
+    if (items.length === 0) {
+      return [...header, '查询结果：未找到匹配的已有事实。'].join('\n');
+    }
+    const resultLines = items.map((item, index) => {
+      const createdAt = new Date(item.created_at).toLocaleString('zh-CN');
+      return `${index + 1}. ${item.fact_payload_summary || '未提供摘要'}（类型：${item.fact_type}，来源：${item.source_type}，时间：${createdAt}）`;
+    });
+    const tail = total > items.length ? `仅展示前 ${items.length} 条，共 ${total} 条。` : `共 ${total} 条。`;
+    return [...header, tail, ...resultLines].join('\n');
   }
 
   async function runGovernanceForCandidates(candidates: L1CandidateItem[], rawInputId: string) {
@@ -372,8 +423,8 @@ export default function H5MainPage() {
       return;
     }
     if (action === '查') {
-      appendMessage({ type: 'status', action: '查', content: `语音转写来源：${sourceLabel}\n语音查询内容：${transcript}\n查询能力待接入，未进入 L0。` });
-      showToast('查询能力待接入，未进入 L0。');
+      appendMessage({ type: 'status', action: '查', content: `语音转写来源：${sourceLabel}\n语音查询内容：${transcript}` });
+      await queryExistingFacts(transcript);
       return;
     }
     appendMessage({ type: 'status', action: '问', content: `语音转写来源：${sourceLabel}\n语音提问内容：${transcript}\n分析能力待接入，未进入 L0。` });

@@ -40,3 +40,27 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# 以下是开发文档、任务卡、报告——不进 GitHub，不上服务器
+02_development_basis/
+03_control/
+04_task_cards/
+05_reports/
+
+# 开发文档不进 GitHub
+01_arch_dir/compass/docs/
+01_arch_dir/compass/ops/
+
+# Tests are dev-only, not deployed
+tests/
+01_arch_dir/compass/apps/h5/tests/
+01_arch_dir/compass/services/api/tests/
+
+# 共享类型（部署不需要）
+01_arch_dir/compass/packages/
+
+# 前端 node_modules (已忽略，二次确认)
+01_arch_dir/compass/apps/h5/node_modules/
+
+# 前端 tsbuildinfo
+*.tsbuildinfo

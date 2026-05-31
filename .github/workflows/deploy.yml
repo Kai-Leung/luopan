@@ -1,0 +1,57 @@
+name: Deploy Compass Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '01_arch_dir/compass/services/api/**'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 82.156.128.251
+          username: root
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            set -e
+            cd /root/compass
+
+            echo "=== 1. Pull latest code ==="
+            git pull origin main
+
+            echo ""
+            echo "=== 2. Setup venv if needed ==="
+            if [ ! -d services/api/.venv ]; then
+              /usr/bin/python3.12 -m venv services/api/.venv
+            fi
+
+            echo ""
+            echo "=== 3. Install/update Python dependencies ==="
+            source services/api/.venv/bin/activate
+            cd services/api
+            pip install --upgrade pip -q
+            pip install -r requirements.txt -q
+
+            echo ""
+            echo "=== 4. Create data dir if needed ==="
+            mkdir -p data/dev
+
+            echo ""
+            echo "=== 5. Restart backend service ==="
+            systemctl daemon-reload
+            systemctl restart compass-backend
+
+            echo ""
+            echo "=== 6. Verify deployment ==="
+            sleep 3
+            curl -s http://127.0.0.1:8000/health
+            echo ""
+            echo "Deploy completed."
