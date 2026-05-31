@@ -3,9 +3,6 @@ name: Deploy Compass Backend
 on:
   push:
     branches: [main]
-    paths:
-      - '01_arch_dir/compass/services/api/**'
-      - '.github/workflows/deploy.yml'
 
 jobs:
   deploy:
@@ -22,36 +19,43 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             set -e
-            cd /root/compass
+            APP_DIR="/root/compass/01_arch_dir/compass/services/api"
 
             echo "=== 1. Pull latest code ==="
+            cd /root/compass
             git pull origin main
 
             echo ""
             echo "=== 2. Setup venv if needed ==="
-            if [ ! -d services/api/.venv ]; then
-              /usr/bin/python3.12 -m venv services/api/.venv
+            if [ ! -d "$APP_DIR/.venv" ]; then
+              /usr/bin/python3.12 -m venv "$APP_DIR/.venv"
             fi
 
             echo ""
             echo "=== 3. Install/update Python dependencies ==="
-            source services/api/.venv/bin/activate
-            cd services/api
+            source "$APP_DIR/.venv/bin/activate"
             pip install --upgrade pip -q
-            pip install -r requirements.txt -q
+            pip install uvicorn fastapi sqlalchemy pydantic aiosqlite -q
 
             echo ""
             echo "=== 4. Create data dir if needed ==="
-            mkdir -p data/dev
+            mkdir -p /root/compass/01_arch_dir/compass/data/dev
 
             echo ""
-            echo "=== 5. Restart backend service ==="
+            echo "=== 5. Write .env if missing ==="
+            if [ ! -f "$APP_DIR/.env" ]; then
+              echo 'DATABASE_URL=sqlite:///./data/dev/compass_dev.sqlite3' > "$APP_DIR/.env"
+              echo ".env created"
+            fi
+
+            echo ""
+            echo "=== 6. Restart backend service ==="
             systemctl daemon-reload
             systemctl restart compass-backend
 
             echo ""
-            echo "=== 6. Verify deployment ==="
+            echo "=== 7. Verify deployment ==="
             sleep 3
-            curl -s http://127.0.0.1:8000/health
+            curl -s http://127.0.0.1:8000/api/v1/l3/facts
             echo ""
             echo "Deploy completed."
