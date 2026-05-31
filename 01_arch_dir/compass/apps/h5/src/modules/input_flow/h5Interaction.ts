@@ -152,22 +152,31 @@ export function formatGovernanceResult(
 ): string {
   const lines = [title];
   if (governance.risk_level) {
-    lines.push(`风险等级：${governance.risk_level}`);
+    lines.push(`提示级别：${formatRiskLevel(governance.risk_level)}`);
   }
   if (governance.question_prompts && governance.question_prompts.length > 0) {
-    lines.push(`待补提示：${governance.question_prompts.join('；')}`);
+    lines.push(`建议补充：${governance.question_prompts.slice(0, 2).join('；')}`);
   } else if (governance.missing_fields && governance.missing_fields.length > 0) {
     const displayNames = governance.missing_fields
       .map((fieldName) => FIELD_DISPLAY_RULES[fieldName])
       .filter(Boolean);
     if (displayNames.length > 0) {
-      lines.push(`待补信息：${displayNames.join('、')}`);
+      lines.push(`建议补充：${displayNames.slice(0, 2).join('、')}`);
     }
   }
   if (governance.risk_hints && governance.risk_hints.length > 0) {
-    lines.push(`风险提示：${governance.risk_hints.join('、')}`);
+    lines.push(`提醒：${governance.risk_hints.slice(0, 2).join('、')}`);
   }
   return lines.join('\n');
+}
+
+function formatRiskLevel(riskLevel: string): string {
+  if (riskLevel === 'none') return '正常';
+  if (riskLevel === 'low') return '低';
+  if (riskLevel === 'medium') return '中';
+  if (riskLevel === 'high') return '高';
+  if (riskLevel === 'blocking') return '需要先处理';
+  return riskLevel;
 }
 
 function normalizeStoredMessage(item: StoredMessage, index: number): InteractionMessage | null {

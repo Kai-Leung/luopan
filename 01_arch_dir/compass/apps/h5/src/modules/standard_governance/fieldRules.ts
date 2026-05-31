@@ -1,7 +1,5 @@
 export const FIELD_REQUIRED_RULES = [
   "primary_project_id",
-  "primary_subject_id",
-  "occurred_at",
 ] as const;
 
 export const FIELD_OPTIONAL_RULES = [

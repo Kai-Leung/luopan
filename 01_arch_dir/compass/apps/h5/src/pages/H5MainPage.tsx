@@ -39,6 +39,12 @@ import {
   resolveTextInputIntent,
 } from '../modules/input_flow/h5Interaction';
 import {
+  H5_PROJECT_CONTEXTS,
+  createLocalProjectContext,
+  findProjectContextMatches,
+} from '../modules/s1_runtime_context/state';
+import type { H5ProjectContext } from '../modules/s1_runtime_context/types';
+import {
   safeAddEventListener,
   safeClearTimeout,
   safeCreateObjectURL,
@@ -113,6 +119,9 @@ export default function H5MainPage() {
   const [pressingAction, setPressingAction] = useState<InteractionAction | null>(null);
   const [interactionPrompt, setInteractionPrompt] = useState<InteractionPromptState>(null);
   const [interactionPromptText, setInteractionPromptText] = useState('');
+  const [selectedProject, setSelectedProject] = useState<H5ProjectContext | null>(null);
+  const [projectContexts, setProjectContexts] = useState<H5ProjectContext[]>(H5_PROJECT_CONTEXTS);
+  const [pendingProjectRecordText, setPendingProjectRecordText] = useState('');
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const albumInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -203,32 +212,43 @@ export default function H5MainPage() {
     await submitText(value, resolvedAction);
   }
 
-  async function submitText(value: string, action: InteractionAction = '录入') {
+  async function submitText(
+    value: string,
+    action: InteractionAction = '录入',
+    options: { skipProjectContextCheck?: boolean; projectContext?: H5ProjectContext | null } = {},
+  ) {
     appendMessage({ type: 'text', action, content: value });
     if (action === '查') {
       await queryExistingFacts(value);
       return;
     }
     if (!shouldSubmitToL0(action)) {
-      appendMessage({ type: 'status', action, content: `${action}能力待接入，未进入 L0。` });
-      showToast(`${action}能力待接入，未进入 L0。`);
+      const message = getUnavailableActionMessage(action);
+      appendMessage({ type: 'status', action, content: message });
+      showToast(message);
+      return;
+    }
+    const projectContext = options.projectContext ?? selectedProject;
+    if (!options.skipProjectContextCheck && !projectContext) {
+      promptProjectContext(value);
       return;
     }
     try {
-      const rawInput = await sendL0RawInput({ text: value, source_type: SourceType.MANUAL_INPUT });
+      const valueWithProject = formatTextWithProjectContext(value, projectContext);
+      const rawInput = await sendL0RawInput({ text: valueWithProject, source_type: SourceType.MANUAL_INPUT });
       const candidate = await createCandidate({
         raw_input_id: rawInput.raw_input_id,
         input_session_id: rawInput.input_session_id,
-        raw_payload: { text: value },
+        raw_payload: { text: valueWithProject, project_name: projectContext?.displayName },
         source_type: SourceType.MANUAL_INPUT,
       });
       const candidates = candidate.candidates && candidate.candidates.length > 0 ? candidate.candidates : [candidate];
       if (candidates.length > 1) {
-        appendMessage({ type: 'status', action: '录入', content: `已拆分 ${candidates.length} 条候选，逐条进入 S2 治理。` });
+        appendMessage({ type: 'status', action: '录入', content: `我看出这里有 ${candidates.length} 件事，会分开整理，方便你逐条确认。` });
       }
       await runGovernanceForCandidates(candidates, rawInput.raw_input_id);
     } catch {
-      showToast('主链路提交失败');
+      showToast('提交失败，请稍后再试。');
     }
   }
 
@@ -236,10 +256,50 @@ export default function H5MainPage() {
     return action === '录入';
   }
 
+  function promptProjectContext(recordText: string) {
+    const matches = findProjectContextMatches(recordText, projectContexts);
+    setPendingProjectRecordText(recordText);
+
+    if (matches.length === 1) {
+      const matchedProject = matches[0].project;
+      setSelectedProject(matchedProject);
+      appendMessage({
+        type: 'status',
+        action: '录入',
+        content: `我先把这条记录关联到「${matchedProject.displayName}」。如果不对，可以重新输入项目名。`,
+      });
+      submitText(recordText, '录入', { skipProjectContextCheck: true, projectContext: matchedProject });
+      return;
+    }
+
+    const hint = matches.length > 1
+      ? `我找到了几个可能的项目：${matches.map((match) => match.project.displayName).join('、')}。请先输入这条记录属于哪个项目。`
+      : '这条记录需要先关联项目。请输入项目名；如果还没有项目，我会先按这个名字作为本次记录的项目上下文。';
+    appendMessage({ type: 'status', action: '录入', content: hint });
+    setInteractionPrompt({
+      kind: 'project',
+      title: '这条记录属于哪个项目？',
+      placeholder: '例如：宝山项目',
+    });
+    showToast('请先补充项目名。');
+  }
+
+  function formatTextWithProjectContext(value: string, project: H5ProjectContext | null): string {
+    if (!project) return value;
+    return `项目：${project.displayName}\n${value}`;
+  }
+
+  function getUnavailableActionMessage(action: InteractionAction): string {
+    if (action === '问') {
+      return '现在还不能直接分析。我可以先帮你查已有记录，或把要记录的情况先整理下来。';
+    }
+    return `${action}暂时还不能处理，请先用文字记录或查询已有记录。`;
+  }
+
   async function queryExistingFacts(keyword: string) {
     const normalizedKeyword = keyword.trim();
     if (!normalizedKeyword) {
-      appendMessage({ type: 'status', action: '查', content: '请输入查询关键词。' });
+      appendMessage({ type: 'status', action: '查', content: '想查什么内容？可以直接输入项目、事项或关键词。' });
       return;
     }
     try {
@@ -253,29 +313,29 @@ export default function H5MainPage() {
         action: '查',
         content: formatReadonlyFactQueryMessage(normalizedKeyword, response.items, response.total),
       });
-      showToast(response.items.length > 0 ? '已返回 L3 只读查询结果。' : '未查询到已有事实。');
+      showToast(response.items.length > 0 ? '查到了已有记录。' : '没有查到相关记录。');
     } catch (error) {
       appendMessage({
         type: 'status',
         action: '查',
-        content: `已有事实查询失败。\n查询关键词：${normalizedKeyword}\n本次查询不产生正式事实，不写入 L0/L1/L2，也不作为 AI 分析结论。`,
+        content: `这次没有查成功。\n查询内容：${normalizedKeyword}\n只是查询已有记录，不会新增或修改任何内容。`,
       });
-      showToast(error instanceof Error && error.message.trim() ? error.message.trim() : '已有事实查询失败。');
+      showToast(error instanceof Error && error.message.trim() ? error.message.trim() : '查询失败，请稍后再试。');
     }
   }
 
   function formatReadonlyFactQueryMessage(keyword: string, items: L3FactListItem[], total: number): string {
     const header = [
-      '已有事实查询结果',
-      `查询关键词：${keyword}`,
-      '说明：本次为 L3 只读查询，不产生正式事实，不写入 L0/L1/L2，不作为 AI 分析结论。',
+      '我帮你查了已有记录',
+      `查询内容：${keyword}`,
+      '这只是查看已有内容，不会新增、修改或形成分析结论。',
     ];
     if (items.length === 0) {
-      return [...header, '查询结果：未找到匹配的已有事实。'].join('\n');
+      return [...header, '没有找到匹配的记录。'].join('\n');
     }
     const resultLines = items.map((item, index) => {
       const createdAt = new Date(item.created_at).toLocaleString('zh-CN');
-      return `${index + 1}. ${item.fact_payload_summary || '未提供摘要'}（类型：${item.fact_type}，来源：${item.source_type}，时间：${createdAt}）`;
+      return `${index + 1}. ${item.fact_payload_summary || '这条记录暂时没有摘要'}（${createdAt}）`;
     });
     const tail = total > items.length ? `仅展示前 ${items.length} 条，共 ${total} 条。` : `共 ${total} 条。`;
     return [...header, tail, ...resultLines].join('\n');
@@ -315,7 +375,7 @@ export default function H5MainPage() {
     if (governance.next_action !== 'need_confirm') return null;
     const factRecordType = getCandidateFactRecordType(item);
     if (!factRecordType) {
-      showToast('候选缺少事实类型，未进入待确认队列。');
+      showToast('这条内容还没看出类型，请补充一句说明。');
       return null;
     }
     return createPendingConfirmation({
@@ -337,18 +397,18 @@ export default function H5MainPage() {
 
   function formatStatusLine(governance: S2GovernanceCheckResponse, pendingCreated: boolean) {
     if (governance.next_action === 'blocked') {
-      return formatGovernanceResult('治理结果：已阻断，未进入人工确认和正式事实。', governance);
+      return formatGovernanceResult('这条内容暂时不能保存，请先处理下面的提醒。', governance);
     }
     if (governance.next_action === 'ask_more') {
-      return formatGovernanceResult('需要补充信息，未进入正式事实。', governance);
+      return formatGovernanceResult('还差一点关键信息，补上后我再帮你整理。', governance);
     }
     if (governance.next_action === 'ready_to_chain') {
-      return formatGovernanceResult('当前内容可进入下一环，请继续确认。', governance);
+      return formatGovernanceResult('内容已经基本清楚，请确认后保存。', governance);
     }
     if (!pendingCreated) {
-      return formatGovernanceResult('候选缺少标准事实类型，未进入待确认队列。', governance);
+      return formatGovernanceResult('这条内容还没看出是什么类型，请再补一句说明。', governance);
     }
-    return formatGovernanceResult('需要人工确认，已进入待确认队列，需用户确认后再入链。', governance);
+    return formatGovernanceResult('我整理好了，确认后再保存为正式记录。', governance);
   }
 
   async function confirmPendingItem(item: PendingConfirmationItem) {
@@ -372,8 +432,8 @@ export default function H5MainPage() {
       const factText = typeof factView.fact_payload.text === 'string' ? factView.fact_payload.text : item.display_text;
       setHandledPendingIds((prev) => [...prev, item.pending_id]);
       setPendingItems((prev) => prev.filter((pending) => pending.pending_id !== item.pending_id));
-      appendMessage({ type: 'status', action: '录入', content: `待确认已由用户确认，后端已返回正式事实结果。\n${factText}` });
-      showToast('后端已返回 L2 / L3 结果。');
+      appendMessage({ type: 'status', action: '录入', content: `已确认并保存。\n${factText}` });
+      showToast('已保存，可以在查询里看到。');
     } catch {
       showToast('待确认处理失败');
     }
@@ -385,7 +445,7 @@ export default function H5MainPage() {
     setPressingAction(action);
     try {
       voiceCaptureRef.current = await startVoiceCapture(action);
-      showToast('正在识别语音；优先使用浏览器内置能力，必要时后端 ASR 兜底。');
+      showToast('正在听你说话。');
     } catch (error) {
       activePressActionRef.current = null;
       setPressingAction(null);
@@ -402,7 +462,7 @@ export default function H5MainPage() {
     if (!session) return;
 
     try {
-      showToast('正在完成语音转写。');
+      showToast('正在整理语音内容。');
       const result = await finishVoiceCapture(session);
       await handleVoiceTranscript(session.action, result.text, result.source);
     } catch (error) {
@@ -418,17 +478,17 @@ export default function H5MainPage() {
     }
     const sourceLabel = formatVoiceSourceLabel(source);
     if (action === '录入') {
-      appendMessage({ type: 'status', action: '录入', content: `语音转写来源：${sourceLabel}` });
+      appendMessage({ type: 'status', action: '录入', content: `已识别语音：${sourceLabel}` });
       await submitText(transcript, '录入');
       return;
     }
     if (action === '查') {
-      appendMessage({ type: 'status', action: '查', content: `语音转写来源：${sourceLabel}\n语音查询内容：${transcript}` });
+      appendMessage({ type: 'status', action: '查', content: `已识别语音：${sourceLabel}\n查询内容：${transcript}` });
       await queryExistingFacts(transcript);
       return;
     }
-    appendMessage({ type: 'status', action: '问', content: `语音转写来源：${sourceLabel}\n语音提问内容：${transcript}\n分析能力待接入，未进入 L0。` });
-    showToast('分析能力待接入，未进入 L0。');
+    appendMessage({ type: 'status', action: '问', content: `已识别语音：${sourceLabel}\n你问的是：${transcript}\n现在还不能直接分析，我可以先帮你查相关记录。` });
+    showToast('现在还不能直接分析。');
   }
 
   function isVoiceAction(action: InteractionAction): action is VoiceAction {
@@ -443,8 +503,8 @@ export default function H5MainPage() {
   }
 
   function formatVoiceSourceLabel(source: VoiceTranscriptionSource): string {
-    if (source === 'native_speech') return '浏览器内置语音识别';
-    if (source === 'backend_asr') return '后端 ASR 网关';
+    if (source === 'native_speech') return '本机识别';
+    if (source === 'backend_asr') return '服务识别';
     return '不可用';
   }
 
@@ -477,7 +537,32 @@ export default function H5MainPage() {
   function submitInteractionPrompt() {
     if (!interactionPrompt) return;
     const value = interactionPromptText.trim();
-    if (!value) return showToast(interactionPrompt.kind === 'time' ? '请填写时间。' : '请填写人员。');
+    if (!value) {
+      if (interactionPrompt.kind === 'project') return showToast('请填写项目名。');
+      return showToast(interactionPrompt.kind === 'time' ? '请填写时间。' : '请填写人员。');
+    }
+    if (interactionPrompt.kind === 'project') {
+      const project = createLocalProjectContext(value);
+      setSelectedProject(project);
+      setProjectContexts((prev) => {
+        const normalizedProjectName = project.displayName.trim();
+        if (prev.some((item) => item.displayName === normalizedProjectName)) return prev;
+        return [...prev, project];
+      });
+      appendMessage({
+        type: 'status',
+        action: '录入',
+        content: `已关联到「${project.displayName}」。这个名字只作为本次记录的项目上下文，不会直接新建正式项目。`,
+      });
+      const recordText = pendingProjectRecordText;
+      setPendingProjectRecordText('');
+      setInteractionPrompt(null);
+      setInteractionPromptText('');
+      if (recordText) {
+        submitText(recordText, '录入', { skipProjectContextCheck: true, projectContext: project });
+      }
+      return;
+    }
     appendMessage({ type: 'status', action: '录入', content: `${interactionPrompt.title}：${value}` });
     setInteractionPrompt(null);
     setInteractionPromptText('');
@@ -513,6 +598,26 @@ export default function H5MainPage() {
         <button className="h5-task-right" onClick={() => setPendingOpen(true)}>
           <div className="h5-pending-label">待确认</div>
           <div className="h5-pending-num">{pendingItems.length}</div>
+        </button>
+      </section>
+
+      <section className="h5-project-context-bar" aria-label="当前项目上下文">
+        <div>
+          <span className="h5-project-context-label">当前项目</span>
+          <strong>{selectedProject ? selectedProject.displayName : '未选择'}</strong>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setPendingProjectRecordText('');
+            setInteractionPrompt({
+              kind: 'project',
+              title: selectedProject ? '切换项目' : '选择或新建项目',
+              placeholder: '例如：宝山项目',
+            });
+          }}
+        >
+          {selectedProject ? '切换' : '选择/新建'}
         </button>
       </section>
 

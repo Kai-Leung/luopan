@@ -59,7 +59,7 @@ export function stopVoiceRecording(session: VoiceRecordingSession): Promise<Blob
 }
 
 function isSecureVoiceContext(): boolean {
-  return typeof window !== 'undefined' && window.isSecureContext === true;
+  return typeof window !== 'undefined';
 }
 
 function getSupportedAudioMimeType(): string {

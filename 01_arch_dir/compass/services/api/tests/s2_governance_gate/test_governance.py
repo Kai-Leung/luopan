@@ -269,23 +269,32 @@ def test_content_missing_project_time_subject_generates_questions():
     assert response.status_code == 200
     body = response.json()
     assert body["governance_status"] == "needs_completion"
-    assert body["missing_fields"] == [
-        "primary_project_id",
-        "primary_subject_id",
-        "occurred_at",
-    ]
+    assert body["missing_fields"] == ["primary_project_id"]
     assert body["risk_level"] == "none"
-    assert body["question_prompts"] == [
-        "请补充项目",
-        "请补充人员或主体",
-        "请补充时间",
-    ]
-    assert body["validation_hints"] == [
-        "字段缺口：项目",
-        "字段缺口：人员/主体",
-        "字段缺口：时间",
-    ]
+    assert body["question_prompts"] == ["请补充项目"]
+    assert body["validation_hints"] == ["字段缺口：项目"]
     assert body["next_action"] == "ask_more"
+
+
+def test_project_context_alias_satisfies_required_project_field():
+    response = client.post(
+        "/api/v1/s2/governance/check",
+        json={
+            "candidate_id": "cand_project_context_alias",
+            "candidate_status": "new_candidate",
+            "candidate_payload": {
+                "text": "现场完成普通记录",
+                "project_name": "宝山项目",
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["governance_status"] == "auto_pass"
+    assert body["missing_fields"] == []
+    assert body["question_prompts"] == []
+    assert body["next_action"] == "need_confirm"
 
 
 def test_project_asset_candidate_missing_fields_needs_completion_without_project_assignment():

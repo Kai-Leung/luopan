@@ -67,7 +67,7 @@ export function startNativeSpeechSession(): NativeSpeechSession | null {
 }
 
 function getNativeSpeechRecognition(): NativeSpeechRecognitionConstructor | null {
-  if (typeof window === 'undefined' || window.isSecureContext !== true) return null;
+  if (typeof window === 'undefined') return null;
   const speechWindow = window as NativeSpeechWindow;
   return speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition || null;
 }

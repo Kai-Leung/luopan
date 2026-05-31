@@ -341,7 +341,7 @@ def test_question_templates_are_empty_until_dev_basis_provides_templates():
 
 
 def test_field_required_optional_conditional_rules_are_defined():
-    assert set(FIELD_REQUIRED_RULES) == {"primary_project_id", "primary_subject_id", "occurred_at"}
+    assert set(FIELD_REQUIRED_RULES) == {"primary_project_id"}
     assert "evidence_refs" in FIELD_OPTIONAL_RULES
     assert all(rule["field_name"] in KNOWN_FIELD_NAMES for rule in FIELD_CONDITIONAL_RULES)
     assert any("fact_record_type" in rule for rule in FIELD_CONDITIONAL_RULES)
@@ -361,10 +361,7 @@ def test_field_rule_missing_detection_ignores_optional_fields():
 
 
 def test_field_rule_missing_detection_checks_required_fields():
-    assert find_missing_field_rule_fields({"primary_subject_id": "张工"}) == [
-        "primary_project_id",
-        "occurred_at",
-    ]
+    assert find_missing_field_rule_fields({"primary_subject_id": "张工"}) == ["primary_project_id"]
 
 
 def test_field_rule_missing_detection_checks_conditional_fields():

@@ -6,8 +6,6 @@ from typing import Any, Mapping, Optional
 
 FIELD_REQUIRED_RULES = (
     "primary_project_id",
-    "primary_subject_id",
-    "occurred_at",
 )
 
 FIELD_OPTIONAL_RULES = (
@@ -177,10 +175,27 @@ def normalize_payload_for_field_rules(candidate_payload: Mapping[str, Any], text
         **candidate_payload,
         "fact_summary": candidate_payload.get("fact_summary") or text,
     }
+    _apply_collected_field_aliases(normalized_payload)
     for field_name in FIELD_TEXT_SIGNAL_RULES:
         if _is_missing_value(normalized_payload.get(field_name)) and text_has_field_signal(field_name, text):
             normalized_payload[field_name] = "text_signal"
     return normalized_payload
+
+
+def _apply_collected_field_aliases(normalized_payload: dict[str, Any]) -> None:
+    alias_pairs = (
+        ("project_name", "primary_project_id"),
+        ("subject_name", "primary_subject_id"),
+    )
+    raw_payload = normalized_payload.get("raw_payload")
+    for source_field, target_field in alias_pairs:
+        if not _is_missing_value(normalized_payload.get(target_field)):
+            continue
+        source_value = normalized_payload.get(source_field)
+        if _is_missing_value(source_value) and isinstance(raw_payload, Mapping):
+            source_value = raw_payload.get(source_field)
+        if not _is_missing_value(source_value):
+            normalized_payload[target_field] = source_value
 
 
 def find_missing_text_required_fields(payload: Mapping[str, Any]) -> list[str]:
