@@ -370,7 +370,7 @@ def test_optional_field_missing_does_not_block():
     assert body["next_action"] == "need_confirm"
 
 
-def test_conditional_keyword_missing_field_generates_question():
+def test_low_risk_construction_without_project_asks_project_only():
     response = client.post(
         "/api/v1/s2/governance/check",
         json={
@@ -386,10 +386,9 @@ def test_conditional_keyword_missing_field_generates_question():
     assert response.status_code == 200
     body = response.json()
     assert body["governance_status"] == "needs_completion"
-    assert body["missing_fields"] == ["primary_project_id", "object_asset_name"]
+    assert body["missing_fields"] == ["primary_project_id"]
     assert body["question_prompts"] == [
         "请补充项目",
-        "请补充位置或对象",
     ]
     assert body["next_action"] == "ask_more"
 
@@ -438,7 +437,7 @@ def test_high_risk_conditional_missing_fields_ask_more():
     assert body["next_action"] == "ask_more"
 
 
-def test_fact_record_type_conditional_required_fields_are_checked():
+def test_low_risk_material_record_with_project_does_not_ask_supplier():
     response = client.post(
         "/api/v1/s2/governance/check",
         json={
@@ -453,12 +452,10 @@ def test_fact_record_type_conditional_required_fields_are_checked():
 
     assert response.status_code == 200
     body = response.json()
-    assert body["governance_status"] == "needs_completion"
-    assert body["missing_fields"] == ["related_subject_ids"]
-    assert body["question_prompts"] == [
-        "请补充供应商或相关主体",
-    ]
-    assert body["next_action"] == "ask_more"
+    assert body["governance_status"] == "auto_pass"
+    assert body["missing_fields"] == []
+    assert body["question_prompts"] == []
+    assert body["next_action"] == "need_confirm"
 
 
 def test_s2_uses_candidate_fact_record_type_for_field_rules():
@@ -477,15 +474,14 @@ def test_s2_uses_candidate_fact_record_type_for_field_rules():
     assert response.status_code == 200
     body = response.json()
     assert body["governance_status"] == "needs_completion"
-    assert body["missing_fields"] == ["primary_project_id", "related_subject_ids"]
+    assert body["missing_fields"] == ["primary_project_id"]
     assert body["question_prompts"] == [
         "请补充项目",
-        "请补充供应商或相关主体",
     ]
     assert body["next_action"] == "ask_more"
 
 
-def test_material_text_without_project_asks_project_and_supplier():
+def test_material_text_without_project_asks_project_only():
     response = client.post(
         "/api/v1/s2/governance/check",
         json={
@@ -501,10 +497,9 @@ def test_material_text_without_project_asks_project_and_supplier():
     assert response.status_code == 200
     body = response.json()
     assert body["governance_status"] == "needs_completion"
-    assert body["missing_fields"] == ["primary_project_id", "related_subject_ids"]
+    assert body["missing_fields"] == ["primary_project_id"]
     assert body["question_prompts"] == [
         "请补充项目",
-        "请补充供应商或相关主体",
     ]
     assert body["next_action"] == "ask_more"
 

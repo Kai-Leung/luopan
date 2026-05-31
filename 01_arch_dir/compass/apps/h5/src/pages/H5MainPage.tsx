@@ -62,6 +62,7 @@ import type {
   InteractionPromptState,
 } from '../modules/input_flow/h5Interaction';
 import { SourceType } from '../modules/standard_governance/enums';
+import { uploadOriginalFile } from '../modules/upload';
 import { finishVoiceCapture, startVoiceCapture } from '../modules/voice_transcription';
 import type { VoiceAction, VoiceCaptureSession, VoiceTranscriptionSource } from '../modules/voice_transcription';
 import '../styles/h5.css';
@@ -521,11 +522,50 @@ export default function H5MainPage() {
     });
   }
 
-  function handleImageInput(fileList: FileList | null) {
+  async function handleImageInput(fileList: FileList | null) {
     const file = fileList?.[0];
     updateRecentPhotos(fileList);
     setUploadOpen(false);
-    if (file) appendToCentralInput(file.name ? `已选择图片：${file.name}。请补充业务说明。` : '已选择图片。请补充业务说明。');
+    if (file) {
+      await uploadSelectedFile(file, 'image');
+    }
+  }
+
+  async function handleFileInput(fileList: FileList | null) {
+    const file = fileList?.[0];
+    setUploadOpen(false);
+    if (file) {
+      await uploadSelectedFile(file, 'file');
+    }
+  }
+
+  async function uploadSelectedFile(file: File, kind: 'image' | 'file') {
+    showToast('正在上传文件...');
+    try {
+      const uploadedFile = await uploadOriginalFile(file);
+      const action = kind === 'image' ? '图片' : '文件';
+      const previewUrl = kind === 'image' ? safeCreateObjectURL(file) : undefined;
+      appendMessage({
+        type: kind,
+        action,
+        content: `已上传：${uploadedFile.filename}`,
+        fileName: uploadedFile.filename,
+        fileSize: uploadedFile.file_size,
+        dataUrl: previewUrl,
+      });
+      appendToCentralInput(
+        `已上传${kind === 'image' ? '图片' : '文件'}：${uploadedFile.filename}，文件编号：${uploadedFile.upload_id}。请补充业务说明。`,
+      );
+      showToast('上传成功，原件已保存。');
+    } catch (error) {
+      const message = error instanceof Error && error.message.trim() ? error.message.trim() : '上传失败。';
+      appendMessage({
+        type: 'status',
+        action: kind === 'image' ? '图片' : '文件',
+        content: `上传失败：${message}`,
+      });
+      showToast(message);
+    }
   }
 
   function handleInteractionAction(action: InteractionAction | string) {
@@ -662,14 +702,10 @@ export default function H5MainPage() {
       }} onLogout={() => setLogoutConfirmOpen(true)} profile={LOCAL_DRAWER_PROFILE} menuGroups={LOCAL_DRAWER_MENU_GROUPS} />
       <ConfirmDialog open={logoutConfirmOpen} onCancel={() => setLogoutConfirmOpen(false)} onConfirm={() => { setLogoutConfirmOpen(false); setDrawerOpen(false); showToast('已退出登录'); }} />
       <InteractionPromptDialog prompt={interactionPrompt} value={interactionPromptText} onValueChange={setInteractionPromptText} onCancel={() => setInteractionPrompt(null)} onSubmit={submitInteractionPrompt} />
-      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="h5-hidden-input" onChange={(event) => { handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
-      <input ref={albumInputRef} type="file" accept="image/*" className="h5-hidden-input" onChange={(event) => { handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
-      <input ref={fileInputRef} type="file" className="h5-hidden-input" onChange={(event) => {
-        const file = event.target.files?.[0];
-        if (file) {
-          setUploadOpen(false);
-          appendToCentralInput(file.name ? `已选择文件：${file.name}。请补充业务说明。` : '已选择文件。请补充业务说明。');
-        }
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
+      <input ref={albumInputRef} type="file" accept="image/*" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
+      <input ref={fileInputRef} type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" className="h5-hidden-input" onChange={(event) => {
+        void handleFileInput(event.target.files);
         event.currentTarget.value = '';
       }} />
       {factQueryOpen && <FactQueryPanel onClose={() => setFactQueryOpen(false)} />}

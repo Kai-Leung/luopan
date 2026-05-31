@@ -11,6 +11,7 @@ from app.modules.l7_feedback.api import router as l7_feedback_router
 from app.modules.s3_audit_trace.api import router as s3_audit_trace_router
 from app.modules.s2_governance_gate.confirmation.router import router as confirmation_router
 from app.modules.s2_governance_gate.router import router as s2_governance_gate_router
+from app.modules.upload.api import router as upload_router
 from app.modules.voice_transcription.router import router as voice_transcription_router
 
 router = APIRouter()
@@ -25,4 +26,5 @@ router.include_router(l5_recommendation_router)
 router.include_router(l6_execution_router)
 router.include_router(l7_feedback_router)
 router.include_router(s3_audit_trace_router)
+router.include_router(upload_router)
 router.include_router(voice_transcription_router)

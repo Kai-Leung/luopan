@@ -13,11 +13,6 @@ export const FIELD_OPTIONAL_RULES = [
 
 export const FIELD_CONDITIONAL_RULES = [
   {
-    fieldName: "object_asset_name",
-    factRecordType: ["construction_record"],
-    issueKeyword: ["防水", "施工", "维修", "现场", "返工"],
-  },
-  {
     fieldName: "evidence_refs",
     riskLevel: ["high", "blocking"],
   },
@@ -33,14 +28,6 @@ export const FIELD_CONDITIONAL_RULES = [
   {
     fieldName: "document_asset_type",
     factRecordType: ["document_record"],
-  },
-  {
-    fieldName: "material_asset_id",
-    factRecordType: ["material_flow_record"],
-  },
-  {
-    fieldName: "related_subject_ids",
-    issueKeyword: ["水泥", "材料", "供应商", "采购", "买了", "到货"],
   },
 ] as const;
 

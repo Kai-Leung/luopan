@@ -23,11 +23,6 @@ FIELD_TEXT_REQUIRED_RULES = (
 
 FIELD_CONDITIONAL_RULES = (
     {
-        "field_name": "object_asset_name",
-        "fact_record_type": ("construction_record",),
-        "issue_keyword": ("防水", "施工", "维修", "现场", "返工"),
-    },
-    {
         "field_name": "evidence_refs",
         "risk_level": ("high", "blocking"),
     },
@@ -49,15 +44,6 @@ FIELD_CONDITIONAL_RULES = (
     {
         "field_name": "document_asset_type",
         "fact_record_type": ("document_record",),
-    },
-    {
-        "field_name": "material_asset_id",
-        "fact_record_type": ("material_flow_record", "purchase_record"),
-    },
-    {
-        "field_name": "related_subject_ids",
-        "fact_record_type": ("material_flow_record", "purchase_record"),
-        "issue_keyword": ("水泥", "材料", "供应商", "采购", "买了", "到货"),
     },
 )
 

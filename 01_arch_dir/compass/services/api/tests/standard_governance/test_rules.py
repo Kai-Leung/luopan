@@ -364,7 +364,7 @@ def test_field_rule_missing_detection_checks_required_fields():
     assert find_missing_field_rule_fields({"primary_subject_id": "张工"}) == ["primary_project_id"]
 
 
-def test_field_rule_missing_detection_checks_conditional_fields():
+def test_low_risk_construction_detail_missing_does_not_block():
     payload = {
         "primary_project_id": "宝山项目",
         "primary_subject_id": "张工",
@@ -375,7 +375,7 @@ def test_field_rule_missing_detection_checks_conditional_fields():
         payload,
         text="今天张工在宝山项目做防水",
         fact_record_type="construction_record",
-    ) == ["object_asset_name"]
+    ) == []
 
 
 def test_field_rule_condition_not_matched_does_not_mark_missing():
