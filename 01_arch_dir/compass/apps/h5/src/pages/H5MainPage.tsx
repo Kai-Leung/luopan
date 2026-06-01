@@ -31,6 +31,7 @@ import type { L1CandidateItem, PendingConfirmationItem, S2GovernanceCheckRespons
 import {
   buildInteractionHints,
   formatCandidateGovernanceItem,
+  formatFileSize,
   formatGovernanceResult,
   getActionFromTextIntent,
   getCandidateSummary,
@@ -50,6 +51,7 @@ import {
   safeCreateObjectURL,
   safeGetHistoryState,
   safePushState,
+  safeRevokeObjectURL,
   safeSetRenderStage,
   safeSetTimeout,
   safeTrySetItem,
@@ -70,6 +72,12 @@ type LocalTaskItem = {
   id: string;
   title: string;
   tag?: string;
+};
+
+type PendingUploadFile = {
+  file: File;
+  kind: 'image' | 'file';
+  previewUrl?: string;
 };
 
 const LOCAL_WEATHER = { icon: '☁', temp: '26°C', city: '上海' };
@@ -121,6 +129,7 @@ export default function H5MainPage() {
   const [selectedProject, setSelectedProject] = useState<H5ProjectContext | null>(null);
   const [projectContexts, setProjectContexts] = useState<H5ProjectContext[]>(H5_PROJECT_CONTEXTS);
   const [pendingProjectRecordText, setPendingProjectRecordText] = useState('');
+  const [pendingUploadFile, setPendingUploadFile] = useState<PendingUploadFile | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const albumInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -195,6 +204,12 @@ export default function H5MainPage() {
   useEffect(() => () => {
     safeClearTimeout(toastTimerRef.current);
   }, []);
+
+  useEffect(() => () => {
+    if (pendingUploadFile?.previewUrl) {
+      safeRevokeObjectURL(pendingUploadFile.previewUrl);
+    }
+  }, [pendingUploadFile]);
 
   async function submitInput(action: InteractionAction = '录入') {
     const value = inputText.trim();
@@ -505,18 +520,45 @@ export default function H5MainPage() {
 
   async function handleImageInput(fileList: FileList | null) {
     const file = fileList?.[0];
-    setUploadOpen(false);
     if (file) {
-      await uploadSelectedFile(file, 'image');
+      setPendingUpload(file, 'image');
+      setUploadOpen(true);
     }
   }
 
   async function handleFileInput(fileList: FileList | null) {
     const file = fileList?.[0];
-    setUploadOpen(false);
     if (file) {
-      await uploadSelectedFile(file, 'file');
+      setPendingUpload(file, 'file');
+      setUploadOpen(true);
     }
+  }
+
+  function setPendingUpload(file: File, kind: 'image' | 'file') {
+    setPendingUploadFile((prev) => {
+      if (prev?.previewUrl) safeRevokeObjectURL(prev.previewUrl);
+      return {
+        file,
+        kind,
+        previewUrl: kind === 'image' ? safeCreateObjectURL(file) : undefined,
+      };
+    });
+  }
+
+  function clearPendingUpload() {
+    setPendingUploadFile((prev) => {
+      if (prev?.previewUrl) safeRevokeObjectURL(prev.previewUrl);
+      return null;
+    });
+  }
+
+  async function confirmPendingUpload() {
+    if (!pendingUploadFile) {
+      showToast('请先选择照片或文件。');
+      return;
+    }
+    const uploadFile = pendingUploadFile;
+    await uploadSelectedFile(uploadFile.file, uploadFile.kind);
   }
 
   async function uploadSelectedFile(file: File, kind: 'image' | 'file') {
@@ -536,6 +578,8 @@ export default function H5MainPage() {
       appendToCentralInput(
         `已上传${kind === 'image' ? '图片' : '文件'}：${uploadedFile.filename}，文件编号：${uploadedFile.upload_id}。请补充业务说明。`,
       );
+      clearPendingUpload();
+      setUploadOpen(false);
       showToast('上传成功，原件已保存。');
     } catch (error) {
       const message = error instanceof Error && error.message.trim() ? error.message.trim() : '上传失败。';
@@ -672,7 +716,21 @@ export default function H5MainPage() {
         onVoiceStart={beginVoicePress}
         onVoiceEnd={finishVoicePress}
       />
-      <UploadChoiceSheet open={uploadOpen} onClose={() => setUploadOpen(false)} onOpenCamera={() => cameraInputRef.current?.click()} onOpenAlbum={() => albumInputRef.current?.click()} onOpenFile={() => fileInputRef.current?.click()} />
+      <UploadChoiceSheet
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onOpenCamera={() => cameraInputRef.current?.click()}
+        onOpenAlbum={() => albumInputRef.current?.click()}
+        onOpenFile={() => fileInputRef.current?.click()}
+        pendingUpload={pendingUploadFile ? {
+          fileName: pendingUploadFile.file.name,
+          fileSizeText: formatFileSize(pendingUploadFile.file.size),
+          kind: pendingUploadFile.kind,
+          previewUrl: pendingUploadFile.previewUrl,
+        } : null}
+        onClearPendingUpload={clearPendingUpload}
+        onConfirmUpload={() => { void confirmPendingUpload(); }}
+      />
       <TodoListSheet open={todoOpen} onClose={() => setTodoOpen(false)} onMockAction={showToast} />
       <ConfirmationPanel open={pendingOpen} onClose={() => setPendingOpen(false)} showToast={showToast} items={pendingItems} onConfirmItem={confirmPendingItem} onSupplementItem={(item) => { setPendingOpen(false); appendToCentralInput(`补充待确认事项：${item.display_text}`); showToast('请在中央输入框补充信息后提交。'); }} />
       <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onNavigate={(id, label, disabled) => {
