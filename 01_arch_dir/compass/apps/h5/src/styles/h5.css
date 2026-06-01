@@ -996,7 +996,7 @@ body {
 
 .h5-upload-recents {
   display: grid;
-  grid-template-columns: minmax(64px, 76px) repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(8px, 2.4vw, 10px);
   margin-bottom: 16px;
 }
@@ -1068,39 +1068,6 @@ body {
   height: 58px;
   border-radius: 50%;
   background: rgba(255,255,255,0.26);
-}
-
-.h5-upload-thumb img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: inherit;
-  display: block;
-}
-
-.h5-upload-placeholder {
-  position: absolute;
-  inset: 0;
-  display: block;
-  background:
-    linear-gradient(145deg, rgba(255,255,255,0.42), rgba(255,255,255,0) 36%),
-    radial-gradient(circle at 28% 28%, rgba(255,255,255,0.72) 0 6px, transparent 7px),
-    linear-gradient(135deg, transparent 0 44%, rgba(255,255,255,0.42) 45% 56%, transparent 57%),
-    linear-gradient(145deg, #CFE0FF 0%, #8EA9FF 48%, #7255F7 100%);
-}
-
-.h5-upload-thumb-1 {
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0)),
-    linear-gradient(145deg, #BEE7E3 0%, #78AFFF 52%, #5967F6 100%);
-}
-
-.h5-upload-thumb-2 {
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0)),
-    linear-gradient(145deg, #FFD6E2 0%, #A78BFA 50%, #5570FF 100%);
 }
 
 .h5-upload-list {

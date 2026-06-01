@@ -50,7 +50,6 @@ import {
   safeCreateObjectURL,
   safeGetHistoryState,
   safePushState,
-  safeRevokeObjectURL,
   safeSetRenderStage,
   safeSetTimeout,
   safeTrySetItem,
@@ -111,7 +110,6 @@ export default function H5MainPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [factQueryOpen, setFactQueryOpen] = useState(false);
-  const [recentPhotos, setRecentPhotos] = useState<string[]>([]);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<InteractionMessage[]>(loadStoredMessages);
   const [pendingItems, setPendingItems] = useState<PendingConfirmationItem[]>([]);
@@ -193,10 +191,6 @@ export default function H5MainPage() {
       .then((response) => setPendingItems(response.items.filter((item) => !handledPendingIds.includes(item.pending_id))))
       .catch(() => showToast('待确认列表加载失败'));
   }, [pendingOpen, handledPendingIds]);
-
-  useEffect(() => () => {
-    recentPhotos.forEach(safeRevokeObjectURL);
-  }, [recentPhotos]);
 
   useEffect(() => () => {
     safeClearTimeout(toastTimerRef.current);
@@ -509,22 +503,8 @@ export default function H5MainPage() {
     return '不可用';
   }
 
-  function updateRecentPhotos(fileList: FileList | null) {
-    if (!fileList || fileList.length === 0) return;
-    const imageFiles = Array.from(fileList).filter((file) => file.type.startsWith('image/'));
-    if (imageFiles.length === 0) return;
-    setRecentPhotos((prev) => {
-      prev.forEach(safeRevokeObjectURL);
-      return imageFiles
-        .slice(-3)
-        .map((file) => safeCreateObjectURL(file))
-        .filter(Boolean);
-    });
-  }
-
   async function handleImageInput(fileList: FileList | null) {
     const file = fileList?.[0];
-    updateRecentPhotos(fileList);
     setUploadOpen(false);
     if (file) {
       await uploadSelectedFile(file, 'image');
@@ -692,7 +672,7 @@ export default function H5MainPage() {
         onVoiceStart={beginVoicePress}
         onVoiceEnd={finishVoicePress}
       />
-      <UploadChoiceSheet open={uploadOpen} onClose={() => setUploadOpen(false)} recentPhotos={recentPhotos} onOpenCamera={() => cameraInputRef.current?.click()} onOpenAlbum={() => albumInputRef.current?.click()} onOpenFile={() => fileInputRef.current?.click()} />
+      <UploadChoiceSheet open={uploadOpen} onClose={() => setUploadOpen(false)} onOpenCamera={() => cameraInputRef.current?.click()} onOpenAlbum={() => albumInputRef.current?.click()} onOpenFile={() => fileInputRef.current?.click()} />
       <TodoListSheet open={todoOpen} onClose={() => setTodoOpen(false)} onMockAction={showToast} />
       <ConfirmationPanel open={pendingOpen} onClose={() => setPendingOpen(false)} showToast={showToast} items={pendingItems} onConfirmItem={confirmPendingItem} onSupplementItem={(item) => { setPendingOpen(false); appendToCentralInput(`补充待确认事项：${item.display_text}`); showToast('请在中央输入框补充信息后提交。'); }} />
       <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onNavigate={(id, label, disabled) => {
@@ -702,8 +682,8 @@ export default function H5MainPage() {
       }} onLogout={() => setLogoutConfirmOpen(true)} profile={LOCAL_DRAWER_PROFILE} menuGroups={LOCAL_DRAWER_MENU_GROUPS} />
       <ConfirmDialog open={logoutConfirmOpen} onCancel={() => setLogoutConfirmOpen(false)} onConfirm={() => { setLogoutConfirmOpen(false); setDrawerOpen(false); showToast('已退出登录'); }} />
       <InteractionPromptDialog prompt={interactionPrompt} value={interactionPromptText} onValueChange={setInteractionPromptText} onCancel={() => setInteractionPrompt(null)} onSubmit={submitInteractionPrompt} />
-      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
-      <input ref={albumInputRef} type="file" accept="image/*" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
+      <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" capture="environment" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
+      <input ref={albumInputRef} type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
       <input ref={fileInputRef} type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" className="h5-hidden-input" onChange={(event) => {
         void handleFileInput(event.target.files);
         event.currentTarget.value = '';

@@ -4,20 +4,17 @@ import { CameraIcon, FileIcon } from '../icons/H5Icons';
 export function UploadChoiceSheet({
   open,
   onClose,
-  recentPhotos,
   onOpenCamera,
   onOpenAlbum,
   onOpenFile,
 }: {
   open: boolean;
   onClose: () => void;
-  recentPhotos: string[];
   onOpenCamera: () => void;
   onOpenAlbum: () => void;
   onOpenFile: () => void;
 }) {
   const touchStartY = useRef(0);
-  const visiblePhotos = Array.isArray(recentPhotos) ? recentPhotos : [];
   return (
     <div className={`h5-upload-sheet ${open ? 'h5-upload-sheet-open' : ''}`} aria-hidden={!open}>
       <button className="h5-upload-mask" onClick={onClose} aria-label="关闭上传选择" />
@@ -37,11 +34,12 @@ export function UploadChoiceSheet({
             <CameraIcon />
             <span>相机</span>
           </button>
-          {[0, 1, 2].map((index) => (
-            <button className={`h5-upload-thumb h5-upload-thumb-${index}`} key={index} onClick={onOpenAlbum} aria-label={`打开相册${index + 1}`}>
-              {visiblePhotos[index] ? <img src={visiblePhotos[index]} alt={`相册入口${index + 1}`} /> : <span className="h5-upload-album-label">相册 {index + 1}</span>}
-            </button>
-          ))}
+          <button className="h5-upload-thumb" onClick={onOpenAlbum}>
+            <span className="h5-upload-album-label">选择照片</span>
+          </button>
+          <button className="h5-upload-thumb" onClick={onOpenFile}>
+            <span className="h5-upload-album-label">选择文件</span>
+          </button>
         </div>
         <div className="h5-upload-list">
           <button onClick={onOpenFile}>
