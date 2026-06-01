@@ -31,7 +31,6 @@ import type { L1CandidateItem, PendingConfirmationItem, S2GovernanceCheckRespons
 import {
   buildInteractionHints,
   formatCandidateGovernanceItem,
-  formatFileSize,
   formatGovernanceResult,
   getActionFromTextIntent,
   getCandidateSummary,
@@ -42,6 +41,7 @@ import {
 import {
   H5_PROJECT_CONTEXTS,
   createLocalProjectContext,
+  extractProjectContextFromText,
   findProjectContextMatches,
 } from '../modules/s1_runtime_context/state';
 import type { H5ProjectContext } from '../modules/s1_runtime_context/types';
@@ -51,7 +51,6 @@ import {
   safeCreateObjectURL,
   safeGetHistoryState,
   safePushState,
-  safeRevokeObjectURL,
   safeSetRenderStage,
   safeSetTimeout,
   safeTrySetItem,
@@ -72,12 +71,6 @@ type LocalTaskItem = {
   id: string;
   title: string;
   tag?: string;
-};
-
-type PendingUploadFile = {
-  file: File;
-  kind: 'image' | 'file';
-  previewUrl?: string;
 };
 
 const LOCAL_WEATHER = { icon: '☁', temp: '26°C', city: '上海' };
@@ -129,7 +122,6 @@ export default function H5MainPage() {
   const [selectedProject, setSelectedProject] = useState<H5ProjectContext | null>(null);
   const [projectContexts, setProjectContexts] = useState<H5ProjectContext[]>(H5_PROJECT_CONTEXTS);
   const [pendingProjectRecordText, setPendingProjectRecordText] = useState('');
-  const [pendingUploadFile, setPendingUploadFile] = useState<PendingUploadFile | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const albumInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -205,12 +197,6 @@ export default function H5MainPage() {
     safeClearTimeout(toastTimerRef.current);
   }, []);
 
-  useEffect(() => () => {
-    if (pendingUploadFile?.previewUrl) {
-      safeRevokeObjectURL(pendingUploadFile.previewUrl);
-    }
-  }, [pendingUploadFile]);
-
   async function submitInput(action: InteractionAction = '录入') {
     const value = inputText.trim();
     if (!value) {
@@ -238,10 +224,19 @@ export default function H5MainPage() {
       showToast(message);
       return;
     }
-    const projectContext = options.projectContext ?? selectedProject;
+    const projectMatches = options.projectContext ? [] : findProjectContextMatches(value, projectContexts);
+    if (!options.skipProjectContextCheck && projectMatches.length > 1) {
+      promptProjectContext(value);
+      return;
+    }
+    const extractedProject = options.projectContext ? null : extractProjectContextFromText(value, projectContexts);
+    const projectContext = options.projectContext ?? extractedProject?.project ?? selectedProject;
     if (!options.skipProjectContextCheck && !projectContext) {
       promptProjectContext(value);
       return;
+    }
+    if (extractedProject) {
+      applyProjectContext(extractedProject.project, extractedProject.isNew);
     }
     try {
       const valueWithProject = formatTextWithProjectContext(value, projectContext);
@@ -282,6 +277,13 @@ export default function H5MainPage() {
       return;
     }
 
+    const extractedProject = extractProjectContextFromText(recordText, projectContexts);
+    if (extractedProject) {
+      applyProjectContext(extractedProject.project, extractedProject.isNew);
+      submitText(recordText, '录入', { skipProjectContextCheck: true, projectContext: extractedProject.project });
+      return;
+    }
+
     const hint = matches.length > 1
       ? `我找到了几个可能的项目：${matches.map((match) => match.project.displayName).join('、')}。请先输入这条记录属于哪个项目。`
       : '这条记录需要先关联项目。请输入项目名；如果还没有项目，我会先按这个名字作为本次记录的项目上下文。';
@@ -292,6 +294,25 @@ export default function H5MainPage() {
       placeholder: '例如：宝山项目',
     });
     showToast('请先补充项目名。');
+  }
+
+  function applyProjectContext(project: H5ProjectContext, isNew: boolean) {
+    const alreadySelected = selectedProject?.displayName === project.displayName;
+    setSelectedProject(project);
+    if (isNew) {
+      setProjectContexts((prev) => {
+        if (prev.some((item) => item.displayName === project.displayName)) return prev;
+        return [...prev, project];
+      });
+    }
+    if (alreadySelected && !isNew) return;
+    appendMessage({
+      type: 'status',
+      action: '录入',
+      content: isNew
+        ? `已按「${project.displayName}」记录项目上下文，不会直接新建正式项目。`
+        : `已关联到「${project.displayName}」。`,
+    });
   }
 
   function formatTextWithProjectContext(value: string, project: H5ProjectContext | null): string {
@@ -373,6 +394,7 @@ export default function H5MainPage() {
         ...pendingResults,
         ...prev.filter((item) => !pendingResults.some((pending) => pending.pending_id === item.pending_id)),
       ]);
+      setPendingOpen(true);
     }
     appendMessage({ type: 'status', action: '录入', content: statusLines.join('\n\n') });
   }
@@ -444,8 +466,8 @@ export default function H5MainPage() {
       setPendingItems((prev) => prev.filter((pending) => pending.pending_id !== item.pending_id));
       appendMessage({ type: 'status', action: '录入', content: `已确认并保存。\n${factText}` });
       showToast('已保存，可以在查询里看到。');
-    } catch {
-      showToast('待确认处理失败');
+    } catch (error) {
+      showToast(error instanceof Error && error.message.trim() ? error.message.trim() : '待确认处理失败');
     }
   }
 
@@ -520,45 +542,18 @@ export default function H5MainPage() {
 
   async function handleImageInput(fileList: FileList | null) {
     const file = fileList?.[0];
+    setUploadOpen(false);
     if (file) {
-      setPendingUpload(file, 'image');
-      setUploadOpen(true);
+      await uploadSelectedFile(file, 'image');
     }
   }
 
   async function handleFileInput(fileList: FileList | null) {
     const file = fileList?.[0];
+    setUploadOpen(false);
     if (file) {
-      setPendingUpload(file, 'file');
-      setUploadOpen(true);
+      await uploadSelectedFile(file, 'file');
     }
-  }
-
-  function setPendingUpload(file: File, kind: 'image' | 'file') {
-    setPendingUploadFile((prev) => {
-      if (prev?.previewUrl) safeRevokeObjectURL(prev.previewUrl);
-      return {
-        file,
-        kind,
-        previewUrl: kind === 'image' ? safeCreateObjectURL(file) : undefined,
-      };
-    });
-  }
-
-  function clearPendingUpload() {
-    setPendingUploadFile((prev) => {
-      if (prev?.previewUrl) safeRevokeObjectURL(prev.previewUrl);
-      return null;
-    });
-  }
-
-  async function confirmPendingUpload() {
-    if (!pendingUploadFile) {
-      showToast('请先选择照片或文件。');
-      return;
-    }
-    const uploadFile = pendingUploadFile;
-    await uploadSelectedFile(uploadFile.file, uploadFile.kind);
   }
 
   async function uploadSelectedFile(file: File, kind: 'image' | 'file') {
@@ -578,8 +573,6 @@ export default function H5MainPage() {
       appendToCentralInput(
         `已上传${kind === 'image' ? '图片' : '文件'}：${uploadedFile.filename}，文件编号：${uploadedFile.upload_id}。请补充业务说明。`,
       );
-      clearPendingUpload();
-      setUploadOpen(false);
       showToast('上传成功，原件已保存。');
     } catch (error) {
       const message = error instanceof Error && error.message.trim() ? error.message.trim() : '上传失败。';
@@ -716,21 +709,7 @@ export default function H5MainPage() {
         onVoiceStart={beginVoicePress}
         onVoiceEnd={finishVoicePress}
       />
-      <UploadChoiceSheet
-        open={uploadOpen}
-        onClose={() => setUploadOpen(false)}
-        onOpenCamera={() => cameraInputRef.current?.click()}
-        onOpenAlbum={() => albumInputRef.current?.click()}
-        onOpenFile={() => fileInputRef.current?.click()}
-        pendingUpload={pendingUploadFile ? {
-          fileName: pendingUploadFile.file.name,
-          fileSizeText: formatFileSize(pendingUploadFile.file.size),
-          kind: pendingUploadFile.kind,
-          previewUrl: pendingUploadFile.previewUrl,
-        } : null}
-        onClearPendingUpload={clearPendingUpload}
-        onConfirmUpload={() => { void confirmPendingUpload(); }}
-      />
+      <UploadChoiceSheet open={uploadOpen} onClose={() => setUploadOpen(false)} onOpenCamera={() => cameraInputRef.current?.click()} onOpenAlbum={() => albumInputRef.current?.click()} onOpenFile={() => fileInputRef.current?.click()} />
       <TodoListSheet open={todoOpen} onClose={() => setTodoOpen(false)} onMockAction={showToast} />
       <ConfirmationPanel open={pendingOpen} onClose={() => setPendingOpen(false)} showToast={showToast} items={pendingItems} onConfirmItem={confirmPendingItem} onSupplementItem={(item) => { setPendingOpen(false); appendToCentralInput(`补充待确认事项：${item.display_text}`); showToast('请在中央输入框补充信息后提交。'); }} />
       <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onNavigate={(id, label, disabled) => {
@@ -740,9 +719,9 @@ export default function H5MainPage() {
       }} onLogout={() => setLogoutConfirmOpen(true)} profile={LOCAL_DRAWER_PROFILE} menuGroups={LOCAL_DRAWER_MENU_GROUPS} />
       <ConfirmDialog open={logoutConfirmOpen} onCancel={() => setLogoutConfirmOpen(false)} onConfirm={() => { setLogoutConfirmOpen(false); setDrawerOpen(false); showToast('已退出登录'); }} />
       <InteractionPromptDialog prompt={interactionPrompt} value={interactionPromptText} onValueChange={setInteractionPromptText} onCancel={() => setInteractionPrompt(null)} onSubmit={submitInteractionPrompt} />
-      <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" capture="environment" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
-      <input ref={albumInputRef} type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
-      <input ref={fileInputRef} type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" className="h5-hidden-input" onChange={(event) => {
+      <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic,.heif" capture="environment" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
+      <input ref={albumInputRef} type="file" accept="image/jpeg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic,.heif" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />
+      <input ref={fileInputRef} type="file" accept=".jpg,.jpeg,.png,.heic,.heif,.pdf,image/jpeg,image/png,image/heic,image/heif,application/pdf" className="h5-hidden-input" onChange={(event) => {
         void handleFileInput(event.target.files);
         event.currentTarget.value = '';
       }} />

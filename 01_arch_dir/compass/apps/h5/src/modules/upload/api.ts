@@ -2,6 +2,7 @@ import { buildRequestUrl } from '../input_flow/api/client';
 import {
   UPLOAD_ALLOWED_DESCRIPTION,
   UPLOAD_ALLOWED_EXTENSIONS,
+  UPLOAD_ALLOWED_MIME_TYPES,
   UPLOAD_MAX_FILE_SIZE,
 } from './constants';
 import type { UploadFileStoredResponse } from './types';
@@ -42,7 +43,7 @@ function validateUploadFile(file: File): string | null {
     return '文件超过 10MB，请换一个小一点的文件。';
   }
   const extension = getFileExtension(file.name);
-  if (!extension) {
+  if (!extension && !isAllowedMimeType(file.type)) {
     return UPLOAD_ALLOWED_DESCRIPTION;
   }
   return null;
@@ -54,6 +55,10 @@ function getFileExtension(filename: string): typeof UPLOAD_ALLOWED_EXTENSIONS[nu
     return extension as typeof UPLOAD_ALLOWED_EXTENSIONS[number];
   }
   return '';
+}
+
+function isAllowedMimeType(contentType: string): boolean {
+  return (UPLOAD_ALLOWED_MIME_TYPES as readonly string[]).includes(contentType.trim().toLowerCase());
 }
 
 async function readSafeUploadError(response: Response): Promise<string> {

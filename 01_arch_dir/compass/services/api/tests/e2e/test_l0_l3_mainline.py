@@ -73,6 +73,71 @@ def test_l0_l3_e2e_confirmed_candidate_becomes_readable_fact():
     assert response.json()["fact_payload"]["text"] == text
 
 
+def test_material_purchase_record_can_enter_l2_and_be_queried():
+    text = "宝山项目张三买了500袋水泥，花了3200元"
+    raw = receive_raw_input(RawInputCreate(text=text, source_type="manual_input"))
+    candidate = create_candidate(
+        L1CandidateCreate(
+            raw_input_id=raw.raw_input_id,
+            raw_payload={"text": text},
+            source_type="manual_input",
+        )
+    )
+    candidate_item = candidate.candidates[0]
+    governance = check_candidate_governance(
+        S2GovernanceCheckRequest(
+            candidate_id=candidate_item.candidate_id,
+            candidate_status=candidate_item.candidate_status,
+            candidate_payload=candidate_item.candidate_payload,
+        )
+    )
+    pending = create_pending_confirmation(
+        PendingConfirmationCreateRequest(
+            raw_input_id=raw.raw_input_id,
+            input_session_id=raw.input_session_id,
+            candidate_id=candidate_item.candidate_id,
+            governance_id=governance.governance_id,
+            governance_status=governance.governance_status,
+            fact_type=candidate_item.candidate_payload["fact_record_type"],
+            fact_payload=candidate_item.candidate_payload,
+            display_text=candidate_item.candidate_payload["candidate_summary"],
+        )
+    )
+    review = review_confirmation(
+        ManualConfirmationReviewRequest(
+            governance_id=governance.governance_id,
+            governance_status=governance.governance_status,
+            review_action="confirm",
+            pending_id=pending.pending_id,
+        )
+    )
+    fact = create_l2_fact(
+        L2FactCreateRequest(
+            raw_input_id=raw.raw_input_id,
+            candidate_id=candidate_item.candidate_id,
+            governance_id=governance.governance_id,
+            review_id=review.review_id,
+            review_status=review.review_status,
+            fact_type=candidate_item.candidate_payload["fact_record_type"],
+            fact_payload=candidate_item.candidate_payload,
+        )
+    )
+
+    response = client.get("/api/v1/l3/facts", params={"keyword": "水泥"})
+
+    assert len(candidate.candidates) == 1
+    assert candidate_item.candidate_payload["primary_subject_id"] == "张三"
+    assert candidate_item.candidate_payload["material_asset_id"] == "水泥"
+    assert candidate_item.candidate_payload["amount_text"] == "花了3200元"
+    assert governance.governance_status == "auto_pass"
+    assert governance.next_action == "need_confirm"
+    assert review.review_status == "confirmed_candidate"
+    assert fact.fact_status == "active_fact"
+    assert response.status_code == 200
+    assert response.json()["total"] == 1
+    assert response.json()["items"][0]["fact_id"] == fact.fact_id
+
+
 def test_project_asset_candidate_flow_creates_project_asset_without_l2_fact():
     text = "新建项目叫宝山刘老师家，客户刘老师，地址宝山一号楼"
     raw = receive_raw_input(RawInputCreate(text=text, source_type="manual_input"))

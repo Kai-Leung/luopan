@@ -171,8 +171,8 @@ def test_extracts_project_subject_time_and_issue_from_decoration_text():
 
     assert response.status_code == 200
     payload = response.json()["candidate_payload"]
-    assert payload["primary_project_id"] == "今天张师傅在宝山项目"
-    assert payload["primary_subject_id"] == "今天张师傅"
+    assert payload["primary_project_id"] == "宝山项目"
+    assert payload["primary_subject_id"] == "张师傅"
     assert payload["occurred_at"] == "今天"
     assert payload["issue_or_action"] == "防水"
     assert payload["fact_record_type"] == "construction_record"
@@ -199,6 +199,32 @@ def test_extracts_subject_amount_and_material_action():
     assert "水泥" in payload["issue_or_action"]
     assert payload["fact_record_type"] == "purchase_record"
     assert "primary_project_id" not in payload
+
+
+def test_purchase_amount_continuation_stays_with_material_candidate():
+    text = "宝山项目张三买了500袋水泥，花了3200元"
+    assert split_candidate_texts(text) == [text]
+
+    raw_input_id = create_raw_input_id(text)
+    response = client.post(
+        "/api/v1/l1/candidates",
+        json={
+            "raw_input_id": raw_input_id,
+            "raw_payload": {"text": text},
+            "source_type": "manual_input",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["candidates"]) == 1
+    payload = body["candidate_payload"]
+    assert payload["primary_project_id"] == "宝山项目"
+    assert payload["primary_subject_id"] == "张三"
+    assert payload["material_asset_id"] == "水泥"
+    assert payload["quantity_text"] == "500袋"
+    assert payload["amount_text"] == "花了3200元"
+    assert payload["fact_record_type"] == "purchase_record"
 
 
 def test_extracts_customer_time_payment_and_amount():

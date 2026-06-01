@@ -1,31 +1,18 @@
 import React, { useRef } from 'react';
 import { CameraIcon, FileIcon } from '../icons/H5Icons';
 
-export type PendingUploadPreview = {
-  fileName: string;
-  fileSizeText: string;
-  kind: 'image' | 'file';
-  previewUrl?: string;
-};
-
 export function UploadChoiceSheet({
   open,
   onClose,
   onOpenCamera,
   onOpenAlbum,
   onOpenFile,
-  pendingUpload,
-  onClearPendingUpload,
-  onConfirmUpload,
 }: {
   open: boolean;
   onClose: () => void;
   onOpenCamera: () => void;
   onOpenAlbum: () => void;
   onOpenFile: () => void;
-  pendingUpload: PendingUploadPreview | null;
-  onClearPendingUpload: () => void;
-  onConfirmUpload: () => void;
 }) {
   const touchStartY = useRef(0);
   return (
@@ -53,23 +40,12 @@ export function UploadChoiceSheet({
             <span className="h5-upload-album-label">选择文件</span>
           </button>
         </div>
-        {pendingUpload ? (
-          <div className="h5-upload-selected">
-            {pendingUpload.previewUrl ? (
-              <img src={pendingUpload.previewUrl} alt={pendingUpload.fileName} />
-            ) : (
-              <span className="h5-upload-selected-icon"><FileIcon /></span>
-            )}
-            <div className="h5-upload-selected-copy">
-              <strong>{pendingUpload.fileName}</strong>
-              <span>{pendingUpload.fileSizeText}</span>
-            </div>
-            <div className="h5-upload-selected-actions">
-              <button type="button" onClick={onClearPendingUpload}>取消</button>
-              <button type="button" onClick={onConfirmUpload}>上传</button>
-            </div>
-          </div>
-        ) : null}
+        <div className="h5-upload-list">
+          <button onClick={onOpenFile}>
+            <span className="h5-upload-list-icon"><FileIcon /></span>
+            <span>添加文件</span>
+          </button>
+        </div>
       </section>
     </div>
   );

@@ -30,9 +30,21 @@ export async function requestJSON<T>(
   });
 
   if (!response.ok) {
-    const message = options.errorMessage || '请求处理失败';
-    throw new Error(`${message}（HTTP ${response.status}）`);
+    const message = await readSafeErrorMessage(response, options.errorMessage || '请求处理失败');
+    throw new Error(message);
   }
 
   return response.json();
+}
+
+async function readSafeErrorMessage(response: Response, fallbackMessage: string): Promise<string> {
+  try {
+    const body = await response.json() as { detail?: unknown };
+    if (typeof body.detail === 'string' && body.detail.trim()) {
+      return `${fallbackMessage}：${body.detail.trim()}`;
+    }
+  } catch {
+    // ignore non-JSON response bodies
+  }
+  return `${fallbackMessage}（HTTP ${response.status}）`;
 }

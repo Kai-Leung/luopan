@@ -29,4 +29,9 @@ def split_candidate_texts(text: str) -> list[str]:
 
 
 def _is_amount_continuation(text: str) -> bool:
-    return bool(re.fullmatch(r"(金额)?\s*\d+(?:\.\d+)?\s*(?:元|万元?|万)?", text))
+    return bool(
+        re.fullmatch(
+            r"(?:金额|共|合计|花了|花费|用了)?\s*[\d零一二三四五六七八九十百千万两]+(?:\.\d+)?\s*(?:元|块|万元?|万)?",
+            text,
+        )
+    )

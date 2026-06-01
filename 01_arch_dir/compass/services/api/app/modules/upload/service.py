@@ -6,7 +6,8 @@ must not create L0/L1 candidates or L2 facts.
 
 from dataclasses import dataclass
 from pathlib import Path
-from re import search
+from re import IGNORECASE, search
+from urllib.parse import unquote
 from uuid import uuid4
 
 from fastapi import HTTPException, status
@@ -16,12 +17,26 @@ from app.modules.upload.schemas import UploadFileStoredResponse
 CODE_ROOT = Path(__file__).resolve().parents[5]
 UPLOAD_ROOT = CODE_ROOT / "storage" / "dev" / "uploads"
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
-MAX_MULTIPART_BYTES = MAX_UPLOAD_BYTES + 64 * 1024
+MAX_MULTIPART_BYTES = MAX_UPLOAD_BYTES + 1024 * 1024
 ALLOWED_EXTENSIONS = {
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
     ".png": "image/png",
+    ".heic": "image/heic",
+    ".heif": "image/heif",
     ".pdf": "application/pdf",
+}
+ALLOWED_CONTENT_TYPES = {
+    "image/jpeg": ".jpg",
+    "image/jpg": ".jpg",
+    "image/pjpeg": ".jpg",
+    "image/png": ".png",
+    "image/x-png": ".png",
+    "image/heic": ".heic",
+    "image/heif": ".heif",
+    "image/heic-sequence": ".heic",
+    "image/heif-sequence": ".heif",
+    "application/pdf": ".pdf",
 }
 
 
@@ -41,11 +56,11 @@ def save_original_file_from_multipart(content_type: str, body: bytes) -> UploadF
 
     parsed_file = parse_single_file_part(content_type, body)
     safe_filename = sanitize_filename(parsed_file.filename)
-    extension = Path(safe_filename).suffix.lower()
+    extension = infer_allowed_extension(safe_filename, parsed_file.content_type)
     if extension not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="仅支持 jpg、jpeg、png、pdf 文件。",
+            detail="仅支持 jpg、jpeg、png、heic、heif、pdf 文件。",
         )
     if len(parsed_file.content) > MAX_UPLOAD_BYTES:
         raise HTTPException(
@@ -64,11 +79,29 @@ def save_original_file_from_multipart(content_type: str, body: bytes) -> UploadF
     return UploadFileStoredResponse(
         upload_id=upload_id,
         filename=safe_filename,
-        content_type=parsed_file.content_type or ALLOWED_EXTENSIONS[extension],
+        content_type=normalize_stored_content_type(extension, parsed_file.content_type),
         file_size=len(parsed_file.content),
         storage_path=f"storage/dev/uploads/{saved_filename}",
         saved=True,
     )
+
+
+def infer_allowed_extension(filename: str, content_type: str) -> str:
+    extension = Path(filename).suffix.lower()
+    if extension in ALLOWED_EXTENSIONS:
+        return extension
+    return ALLOWED_CONTENT_TYPES.get(normalize_content_type(content_type), "")
+
+
+def normalize_stored_content_type(extension: str, content_type: str) -> str:
+    normalized_content_type = normalize_content_type(content_type)
+    if normalized_content_type in ALLOWED_CONTENT_TYPES:
+        return normalized_content_type
+    return ALLOWED_EXTENSIONS[extension]
+
+
+def normalize_content_type(content_type: str) -> str:
+    return content_type.split(";", 1)[0].strip().lower()
 
 
 def parse_single_file_part(content_type: str, body: bytes) -> ParsedMultipartFile:
@@ -85,7 +118,7 @@ def parse_single_file_part(content_type: str, body: bytes) -> ParsedMultipartFil
             continue
         headers = parse_part_headers(header_bytes)
         disposition = headers.get("content-disposition", "")
-        if 'name="file"' not in disposition:
+        if extract_disposition_value(disposition, "name") != "file":
             continue
         filename = extract_disposition_filename(disposition)
         if content.endswith(b"\r\n"):
@@ -117,10 +150,21 @@ def parse_part_headers(header_bytes: bytes) -> dict[str, str]:
 
 
 def extract_disposition_filename(disposition: str) -> str:
-    match = search(r'filename="([^"]+)"', disposition)
-    if not match:
+    filename = extract_disposition_value(disposition, "filename")
+    if not filename:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="缺少文件名。")
-    return match.group(1)
+    return filename
+
+
+def extract_disposition_value(disposition: str, name: str) -> str:
+    encoded_match = search(rf'(?:^|;\s*){name}\*=(?:UTF-8\'\')?([^;]+)', disposition, flags=IGNORECASE)
+    if encoded_match:
+        return unquote(encoded_match.group(1).strip().strip('"'))
+
+    match = search(rf'(?:^|;\s*){name}="?([^";]+)"?', disposition, flags=IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    return ""
 
 
 def sanitize_filename(filename: str) -> str:

@@ -1014,6 +1014,7 @@ body {
 
 .h5-upload-camera:active,
 .h5-upload-thumb:active,
+.h5-upload-list button:active,
 .h5-upload-head button:active {
   transform: scale(0.95);
 }
@@ -1077,77 +1078,40 @@ body {
   font-weight: 500;
 }
 
-.h5-upload-selected {
-  display: grid;
-  grid-template-columns: 54px minmax(0, 1fr);
-  gap: 12px;
-  align-items: center;
-  border-radius: 18px;
-  background: #F7F9FF;
-  padding: 12px;
-}
-
-.h5-upload-selected img,
-.h5-upload-selected-icon {
-  width: 54px;
-  height: 54px;
-  border-radius: 14px;
-  background: white;
-  object-fit: cover;
-}
-
-.h5-upload-selected-icon {
-  display: grid;
-  place-items: center;
-  box-shadow: 0 4px 12px rgba(61, 99, 255, 0.08);
-}
-
-.h5-upload-selected-copy {
-  min-width: 0;
+.h5-upload-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
-.h5-upload-selected-copy strong {
-  color: #10142A;
-  font-size: 14px;
-  line-height: 1.35;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.h5-upload-selected-copy span {
-  color: #6F768B;
-  font-size: 12px;
-}
-
-.h5-upload-selected-actions {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.h5-upload-selected-actions button {
-  height: 42px;
+.h5-upload-list button {
+  width: 100%;
+  height: 54px;
   border: none;
-  border-radius: 14px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 800;
+  border-radius: 18px;
+  background: #F7F9FF;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #10142A;
   cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: transform 0.14s ease, background 0.14s ease;
 }
 
-.h5-upload-selected-actions button:first-child {
+.h5-upload-list-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
   background: white;
-  color: #4D556A;
-}
-
-.h5-upload-selected-actions button:last-child {
-  background: #3D63FF;
-  color: white;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(61, 99, 255, 0.08);
 }
 
 .h5-todo-panel {
