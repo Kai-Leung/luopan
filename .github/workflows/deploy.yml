@@ -20,6 +20,7 @@ jobs:
           script: |
             set -e
             APP_DIR="/root/compass/01_arch_dir/compass/services/api"
+            WEB_DIR="/www/wwwroot/82.156.128.251"
 
             echo "=== 1. Pull latest code ==="
             cd /root/compass
@@ -38,23 +39,39 @@ jobs:
             pip install uvicorn fastapi sqlalchemy pydantic aiosqlite -q
 
             echo ""
-            echo "=== 4. Create data dir if needed ==="
-            mkdir -p /root/compass/01_arch_dir/compass/data/dev
-
-            echo ""
-            echo "=== 5. Write .env if missing ==="
-            if [ ! -f "$APP_DIR/.env" ]; then
-              echo 'DATABASE_URL=sqlite:///./data/dev/compass_dev.sqlite3' > "$APP_DIR/.env"
-              echo ".env created"
+            echo "=== 4. Build frontend ==="
+            cd /root/compass/01_arch_dir/compass/apps/h5
+            if [ -f node_modules/.package-lock.json ]; then
+              npm run build
+            else
+              echo "No node_modules, skip frontend build"
             fi
 
             echo ""
-            echo "=== 6. Restart backend service ==="
+            echo "=== 5. Deploy frontend dist ==="
+            if [ -d dist ]; then
+              rm -rf "$WEB_DIR"/*
+              cp -r dist/* "$WEB_DIR/"
+              chown -R www:www "$WEB_DIR" 2>/dev/null || true
+            fi
+
+            echo ""
+            echo "=== 6. Create data dir if needed ==="
+            mkdir -p /root/compass/01_arch_dir/compass/data/dev
+
+            echo ""
+            echo "=== 7. Write .env if missing ==="
+            if [ ! -f "$APP_DIR/.env" ]; then
+              echo 'DATABASE_URL=sqlite:///./data/dev/compass_dev.sqlite3' > "$APP_DIR/.env"
+            fi
+
+            echo ""
+            echo "=== 8. Restart backend service ==="
             systemctl daemon-reload
             systemctl restart compass-backend
 
             echo ""
-            echo "=== 7. Verify deployment ==="
+            echo "=== 9. Verify deployment ==="
             sleep 3
             curl -s http://127.0.0.1:8000/api/v1/l3/facts
             echo ""
