@@ -37,6 +37,8 @@ venv/
 logs/
 *.log
 
+.tsbuildinfo
+
 # OS
 .DS_Store
 
