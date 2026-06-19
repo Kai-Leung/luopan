@@ -1,73 +1,51 @@
-# Environment / secrets
+# Environment
 .env
 .env.*
 !.env.example
 
-# Dependencies
+# Node
 node_modules/
-.venv/
-venv/
-__pycache__/
-.pytest_cache/
-.mypy_cache/
-
-# Build outputs
 dist/
 build/
-coverage/
+.cache/
+.vite/
+.vercel/
 
-# Local databases and runtime data
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Data / storage
+/data/dev/*
+/data/test/*
+/storage/dev/*
+/storage/test/*
+!/data/.gitkeep
+!/data/dev/.gitkeep
+!/data/test/.gitkeep
+!/storage/.gitkeep
+!/storage/dev/.gitkeep
+!/storage/test/.gitkeep
+
+# DB / logs
 *.db
 *.sqlite
 *.sqlite3
-data/dev/*
-data/test/*
-storage/dev/*
-storage/test/*
-01_arch_dir/**/data/dev/*
-01_arch_dir/**/data/test/*
-01_arch_dir/**/storage/dev/*
-01_arch_dir/**/storage/test/*
-!data/.gitkeep
-!storage/.gitkeep
-!01_arch_dir/**/data/.gitkeep
-!01_arch_dir/**/storage/.gitkeep
-
-# Logs
 logs/
 *.log
 
 # OS
 .DS_Store
-Thumbs.db
 
-# 以下是开发文档、任务卡、报告——不进 GitHub，不上服务器
+# 开发文档、任务卡、报告——不进 GitHub，不上服务器
 02_development_basis/
 03_control/
 04_task_cards/
 05_reports/
-
-# 开发文档不进 GitHub
-01_arch_dir/compass/docs/
-01_arch_dir/compass/ops/
-
-# Tests are dev-only, not deployed
-tests/
-01_arch_dir/compass/apps/h5/tests/
-01_arch_dir/compass/services/api/tests/
-
-# 共享类型（部署不需要）
-
-# 前端 node_modules (已忽略，二次确认)
-01_arch_dir/compass/apps/h5/node_modules/
-
-# 前端 tsbuildinfo
-*.tsbuildinfo
-
-
-# ===== 外层开发包治理文件（不进 GitHub，不上服务器）=====
-# 以下文件属于开发包分发层，不纳入 compass 正式代码仓库
-/AGENTS.md
-/README.md
-/FIRST_CLOUD_TASK_PROMPT.md
-/manifest.json
+AGENTS.md
+FIRST_CLOUD_TASK_PROMPT.md
+manifest.json
+README.md
