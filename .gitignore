@@ -10,11 +10,18 @@ build/
 .cache/
 .vite/
 .vercel/
+coverage/
+playwright-report/
+test-results/
 
 # Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 .venv/
 venv/
 
@@ -37,17 +44,22 @@ venv/
 logs/
 *.log
 
+# TypeScript build cache
 *.tsbuildinfo
 
-# OS
+# OS / archive metadata
 .DS_Store
+__MACOSX/
+.AppleDouble
+.LSOverride
 
-# 开发文档、任务卡、报告——不进 GitHub，不上服务器
+# Development basis, control files, task cards and execution reports
 02_development_basis/
 03_control/
 04_task_cards/
 05_reports/
+工作记录及报告/
+
 AGENTS.md
 FIRST_CLOUD_TASK_PROMPT.md
 manifest.json
-/README.md
