@@ -8,32 +8,7 @@ import { createL6ExecutionResponse } from '../../../modules/l6_execution/api';
 import type { L6ExecutionResponseResponse } from '../../../modules/l6_execution/types';
 import { createL7FeedbackCandidate } from '../../../modules/l7_feedback/api';
 import type { L7FeedbackResponse } from '../../../modules/l7_feedback/types';
-
-const L3_BASE = "/api/v1/l3/facts";
-
-async function listL3Facts(params?: {
-  fact_type?: string;
-  keyword?: string;
-  limit?: number;
-  offset?: number;
-}): Promise<L3FactListResponse> {
-  const query = new URLSearchParams();
-  if (params?.fact_type) query.set("fact_type", params.fact_type);
-  if (params?.keyword) query.set("keyword", params.keyword);
-  if (params?.limit !== undefined) query.set("limit", String(params.limit));
-  if (params?.offset !== undefined) query.set("offset", String(params.offset));
-  const qs = query.toString();
-  const url = qs ? `${L3_BASE}?${qs}` : L3_BASE;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("事实列表加载失败");
-  return res.json();
-}
-
-async function getL3FactDetail(factId: string): Promise<L3FactViewResponse> {
-  const res = await fetch(`${L3_BASE}/${encodeURIComponent(factId)}`);
-  if (!res.ok) throw new Error("事实加载失败");
-  return res.json();
-}
+import { getL3FactDetail, listL3Facts } from '../../../modules/l3_query_view/api';
 
 interface FactQueryPanelProps {
   onClose: () => void;
@@ -213,7 +188,7 @@ export default function FactQueryPanel({ onClose }: FactQueryPanelProps) {
         >
           <option value="">全部类型</option>
           <option value="construction_record">施工记录</option>
-          <option value="material_record">材料记录</option>
+          <option value="material_flow_record">物资流转记录</option>
           <option value="other_fact_record">其他记录</option>
         </select>
         <input
@@ -451,7 +426,11 @@ export default function FactQueryPanel({ onClose }: FactQueryPanelProps) {
                                       </div>
                                       <div className="fact-detail-row">
                                         <label>回流</label>
-                                        <span>{String(feedbackCandidate.returns_to_candidate_flow)}</span>
+                                        <span>已回到 L1 候选，仍需 S2 治理</span>
+                                      </div>
+                                      <div className="fact-detail-row">
+                                        <label>回流候选</label>
+                                        <span>{feedbackCandidate.return_candidate_id}</span>
                                       </div>
                                       <div className="fact-detail-row">
                                         <label>方向</label>

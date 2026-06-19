@@ -14,6 +14,7 @@ from app.db.repositories import (
     create_fact_record,
     ensure_minimal_storage_tables,
     get_candidate,
+    get_fact_record_by_review_id,
     get_governance_result,
     get_manual_review,
     get_raw_input,
@@ -23,6 +24,11 @@ from app.db.session import SessionLocal
 from app.modules.l2_fact.models import FactRecordEntry
 from app.modules.l2_fact.schemas import L2FactCreateRequest, L2FactResponse
 from app.modules.standard_governance.rules.fact_record_types import is_known_fact_record_type
+from app.modules.s1_runtime_context.service import (
+    ensure_payload_in_current_scope,
+    runtime_context_snapshot,
+)
+from app.modules.s3_audit_trace.service import new_trace_ref, record_fact_chain_events
 
 FACT_RECORD_MEMORY_STORE: List[FactRecordEntry] = []
 ACTIVE_FACT_STATUS = "active_fact"
@@ -46,14 +52,44 @@ def create_l2_fact(payload: L2FactCreateRequest) -> L2FactResponse:
     db = SessionLocal()
     try:
         _validate_l2_chain(db, payload)
+        existing = get_fact_record_by_review_id(db, payload.review_id)
+        if existing is not None:
+            return _build_existing_l2_fact_response(existing)
         ensure_minimal_storage_tables(include_fact_records=True)
-        record = _build_fact_record(payload)
+        record = _build_fact_record(payload, trace_ref=new_trace_ref())
         FACT_RECORD_MEMORY_STORE.append(record)
         _persist_fact_record(db, record)
     finally:
         db.close()
 
+    trace_ref = str(record.fact_payload["_trace_ref"])
+    record_fact_chain_events(
+        trace_ref=trace_ref,
+        source_fact_id=record.fact_id,
+        raw_input_id=record.raw_input_id,
+        candidate_id=record.candidate_id,
+        governance_id=record.governance_id,
+        review_id=record.review_id,
+    )
     return _build_l2_fact_response(record)
+
+
+def _build_existing_l2_fact_response(row: Any) -> L2FactResponse:
+    try:
+        fact_payload = load_json_field(row.fact_payload)
+    except ValueError:
+        raise HTTPException(status_code=500, detail="existing fact payload is invalid")
+    ensure_payload_in_current_scope(fact_payload)
+    return L2FactResponse(
+        fact_id=row.fact_id,
+        fact_status=row.fact_status,
+        fact_payload=fact_payload,
+        raw_input_id=row.raw_input_id,
+        candidate_id=row.candidate_id,
+        governance_id=row.governance_id,
+        review_id=row.review_id,
+        message="fact record already exists",
+    )
 
 
 def _validate_l2_payload(payload: L2FactCreateRequest) -> None:
@@ -81,6 +117,11 @@ def _validate_l2_chain(db: Any, payload: L2FactCreateRequest) -> None:
     if raw_input is None:
         logger.warning("L2 entry rejected because raw input is missing")
         raise HTTPException(status_code=400, detail="raw_input_id not found")
+    try:
+        raw_payload = load_json_field(raw_input.raw_payload)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="raw input payload is invalid")
+    ensure_payload_in_current_scope(raw_payload)
 
     candidate = get_candidate(db, payload.candidate_id)
     if candidate is None:
@@ -89,6 +130,11 @@ def _validate_l2_chain(db: Any, payload: L2FactCreateRequest) -> None:
     if candidate.raw_input_id != payload.raw_input_id:
         logger.warning("L2 entry rejected because candidate does not belong to raw input")
         raise HTTPException(status_code=400, detail="candidate does not belong to raw_input")
+    try:
+        candidate_payload = load_json_field(candidate.candidate_payload)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="candidate payload is invalid")
+    ensure_payload_in_current_scope(candidate_payload)
     _validate_candidate_fact_type(candidate.candidate_payload, payload.fact_type)
 
     governance = get_governance_result(db, payload.governance_id)
@@ -138,7 +184,12 @@ def _validate_candidate_fact_type(candidate_payload_raw: str, requested_fact_typ
         raise HTTPException(status_code=400, detail="fact_type does not match candidate fact_record_type")
 
 
-def _build_fact_record(payload: L2FactCreateRequest) -> FactRecordEntry:
+def _build_fact_record(payload: L2FactCreateRequest, *, trace_ref: str) -> FactRecordEntry:
+    fact_payload = {
+        **payload.fact_payload,
+        "_trace_ref": trace_ref,
+        "_runtime_context": runtime_context_snapshot(),
+    }
     return FactRecordEntry(
         fact_id=f"fact_{uuid4().hex}",
         raw_input_id=payload.raw_input_id,
@@ -146,7 +197,7 @@ def _build_fact_record(payload: L2FactCreateRequest) -> FactRecordEntry:
         governance_id=payload.governance_id,
         review_id=payload.review_id,
         fact_type=payload.fact_type,
-        fact_payload=payload.fact_payload,
+        fact_payload=fact_payload,
         fact_status=ACTIVE_FACT_STATUS,
         created_at=datetime.now(timezone.utc),
     )

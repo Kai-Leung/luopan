@@ -5,7 +5,7 @@
 
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.modules.standard_governance.enums.source_types import SourceType
 
@@ -17,6 +17,7 @@ class RawInputCreate(BaseModel):
     image_ref: Optional[str] = None
     file_ref: Optional[str] = None
     input_session_id: Optional[str] = None
+    idempotency_key: Optional[str] = Field(default=None, min_length=1, max_length=128)
     source_type: SourceType
 
     @model_validator(mode="after")

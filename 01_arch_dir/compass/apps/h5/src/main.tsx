@@ -1,4 +1,5 @@
 import React from 'react';
+import { configureNativeRuntime } from './native/runtime';
 import { safeSetBootStage } from './utils/browserSafe';
 
 const STARTUP_STYLE = 'padding:20px;font-family:sans-serif;text-align:center;color:#666;';
@@ -36,6 +37,7 @@ function setStartupError(message: string): void {
 
 async function bootstrapReactApp(): Promise<void> {
   setStartupText('加载中：JS bundle 已执行');
+  void configureNativeRuntime();
   const rootElement = document.getElementById('root');
   if (!rootElement) {
     setStartupError('缺少页面挂载节点');

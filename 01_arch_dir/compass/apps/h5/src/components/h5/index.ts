@@ -7,7 +7,7 @@ export { InputBox } from './InputBox/InputBox';
 export { MessageStream } from './MessageStream/MessageStream';
 export { ConfirmDialog } from './overlays/ConfirmDialog';
 export { InteractionPromptDialog } from './overlays/InteractionPromptDialog';
-export { MockToast } from './overlays/MockToast';
+export { Toast } from './overlays/Toast';
 export { SideDrawer } from './overlays/SideDrawer';
 export { TaskRow } from './overlays/TaskRow';
 export { TodoListSheet } from './overlays/TodoListSheet';

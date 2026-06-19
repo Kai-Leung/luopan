@@ -24,6 +24,9 @@ class L7FeedbackResponse(BaseModel):
     processing_direction: Literal["candidate"]
     feedback_note: str
     feedback_type: Optional[str] = None
+    return_raw_input_id: str
+    return_candidate_id: str
+    governance_required: Literal[True]
     returns_to_candidate_flow: Literal[True]
     created_at: datetime
     standard_error: Optional[StandardErrorResult] = None

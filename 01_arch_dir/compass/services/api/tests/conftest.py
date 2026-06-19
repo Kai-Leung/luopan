@@ -13,6 +13,7 @@ from app.modules.l2_fact.service import FACT_RECORD_MEMORY_STORE
 from app.modules.s2_governance_gate.confirmation.schemas import PendingConfirmationCreateRequest, ManualConfirmationReviewRequest
 from app.modules.s2_governance_gate.confirmation.service import (
     MANUAL_CONFIRMATION_STORE,
+    PENDING_CONFIRMATION_QUEUE,
     create_pending_confirmation,
     review_confirmation,
 )
@@ -26,6 +27,7 @@ def reset_workflow_state() -> None:
     CANDIDATE_MEMORY_STORE.clear()
     GOVERNANCE_MEMORY_STORE.clear()
     MANUAL_CONFIRMATION_STORE.clear()
+    PENDING_CONFIRMATION_QUEUE.clear()
     FACT_RECORD_MEMORY_STORE.clear()
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)

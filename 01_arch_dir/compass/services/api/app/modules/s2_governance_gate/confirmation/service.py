@@ -10,7 +10,13 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 
-from app.db.repositories import create_manual_review, create_project_asset, ensure_minimal_storage_tables, update_candidate_status
+from app.db.repositories import (
+    create_manual_review,
+    create_project_asset,
+    ensure_minimal_storage_tables,
+    get_manual_review_by_governance_id,
+    update_candidate_status,
+)
 from app.db.session import SessionLocal
 from app.modules.s2_governance_gate.confirmation.models import ManualConfirmationRecord, PendingConfirmationRecord
 from app.modules.s2_governance_gate.confirmation.schemas import (
@@ -42,6 +48,7 @@ def review_confirmation(
     payload: ManualConfirmationReviewRequest,
 ) -> ManualConfirmationReviewResponse:
     _ensure_reviewable_governance_status(payload.governance_status)
+    _ensure_governance_not_already_reviewed(payload.governance_id)
     review_id = f"review_{uuid4().hex}"
     project_asset = _create_project_asset_if_allowed(payload, review_id)
     record = _build_confirmation_record(payload, review_id, project_asset)
@@ -49,6 +56,19 @@ def review_confirmation(
     _persist_manual_review(record)
     _update_candidate_status_if_confirmed(payload, record)
     return _build_confirmation_response(record)
+
+
+def _ensure_governance_not_already_reviewed(governance_id: str) -> None:
+    ensure_minimal_storage_tables()
+    db = SessionLocal()
+    try:
+        if get_manual_review_by_governance_id(db, governance_id) is not None:
+            raise HTTPException(
+                status_code=409,
+                detail="governance result has already been reviewed",
+            )
+    finally:
+        db.close()
 
 
 def _ensure_reviewable_governance_status(governance_status: str) -> None:

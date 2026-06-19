@@ -13,6 +13,7 @@ from typing import Optional
 from app.db.repositories import get_fact_record, list_fact_records, load_json_field
 from app.db.session import SessionLocal
 from app.modules.l3_query_view.schemas import L3FactListResponse, L3FactListItem, L3FactViewResponse
+from app.modules.s1_runtime_context.service import ensure_payload_in_current_scope
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ def get_l3_fact_view(fact_id: str) -> L3FactViewResponse:
         except ValueError:
             logger.exception("L3 fact read failed because fact payload is invalid JSON")
             raise HTTPException(status_code=500, detail="fact payload is invalid")
+        ensure_payload_in_current_scope(fact_payload)
 
         return L3FactViewResponse(
             fact_id=row.fact_id,
@@ -80,7 +82,11 @@ def list_l3_facts(
             try:
                 fact_payload = load_json_field(row.fact_payload)
             except ValueError:
-                fact_payload = {}
+                continue
+            try:
+                ensure_payload_in_current_scope(fact_payload)
+            except HTTPException:
+                continue
             summary = _extract_summary(fact_payload)
             source = _extract_source_type(fact_payload)
             items.append(

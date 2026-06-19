@@ -7,7 +7,7 @@ import {
   InputBox,
   InteractionPromptDialog,
   MessageStream,
-  MockToast,
+  Toast,
   SideDrawer,
   TaskRow,
   TodoListSheet,
@@ -44,11 +44,14 @@ import {
   extractProjectContextFromText,
   findProjectContextMatches,
 } from '../modules/s1_runtime_context/state';
-import type { H5ProjectContext } from '../modules/s1_runtime_context/types';
+import { fetchRuntimeContext } from '../modules/s1_runtime_context/api';
+import { setRuntimeProjectId } from '../modules/s1_runtime_context/constants';
+import type { H5ProjectContext, RuntimeContextResponse } from '../modules/s1_runtime_context/types';
 import {
   safeAddEventListener,
   safeClearTimeout,
   safeCreateObjectURL,
+  safeGetItem,
   safeGetHistoryState,
   safePushState,
   safeSetRenderStage,
@@ -73,8 +76,6 @@ type LocalTaskItem = {
   tag?: string;
 };
 
-const LOCAL_WEATHER = { icon: '☁', temp: '26°C', city: '上海' };
-const LOCAL_DRAWER_PROFILE = { name: '张工', role: 'XX建科 · 项目负责人', companyCount: 1 };
 const LOCAL_TASK_ITEMS: LocalTaskItem[] = [];
 const LOCAL_DRAWER_MENU_GROUPS = [
   {
@@ -111,6 +112,7 @@ export default function H5MainPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [factQueryOpen, setFactQueryOpen] = useState(false);
+  const [runtimeContext, setRuntimeContext] = useState<RuntimeContextResponse | null>(null);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<InteractionMessage[]>(loadStoredMessages);
   const [pendingItems, setPendingItems] = useState<PendingConfirmationItem[]>([]);
@@ -162,6 +164,31 @@ export default function H5MainPage() {
   }
 
   useEffect(() => {
+    fetchRuntimeContext()
+      .then((context) => {
+        const previousContextId = safeGetItem('runtime_context_id');
+        if (previousContextId !== context.context_id) {
+          setMessages([]);
+          setCandidateItems([]);
+          setHandledPendingIds([]);
+        }
+        safeTrySetItem('runtime_context_id', context.context_id);
+        setRuntimeContext(context);
+        setProjectContexts(context.project_scope.map((project) => ({
+          projectId: project.project_id,
+          displayName: project.display_name,
+          aliases: project.aliases,
+        })));
+      })
+      .catch((error) => {
+        const message = error instanceof Error && error.message.trim()
+          ? error.message.trim()
+          : '运行上下文加载失败';
+        showToast(message);
+      });
+  }, []);
+
+  useEffect(() => {
     const stored = safeTrySetItem(MESSAGE_STORAGE_KEY, JSON.stringify(messages));
     if (!stored) {
       const compactMessages = messages.map((message) => (
@@ -178,6 +205,35 @@ export default function H5MainPage() {
     }
     return safeAddEventListener('keydown', handleKeyDown);
   }, []);
+
+  useEffect(() => safeAddEventListener('compass:native-back', (event) => {
+    if (logoutConfirmOpen) {
+      setLogoutConfirmOpen(false);
+    } else if (interactionPrompt) {
+      setInteractionPrompt(null);
+    } else if (factQueryOpen) {
+      setFactQueryOpen(false);
+    } else if (pendingOpen) {
+      setPendingOpen(false);
+    } else if (todoOpen) {
+      setTodoOpen(false);
+    } else if (uploadOpen) {
+      setUploadOpen(false);
+    } else if (drawerOpen) {
+      setDrawerOpen(false);
+    } else {
+      return;
+    }
+    event.detail.handled = true;
+  }), [
+    drawerOpen,
+    factQueryOpen,
+    interactionPrompt,
+    logoutConfirmOpen,
+    pendingOpen,
+    todoOpen,
+    uploadOpen,
+  ]);
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -240,7 +296,11 @@ export default function H5MainPage() {
     }
     try {
       const valueWithProject = formatTextWithProjectContext(value, projectContext);
-      const rawInput = await sendL0RawInput({ text: valueWithProject, source_type: SourceType.MANUAL_INPUT });
+      const rawInput = await sendL0RawInput({
+        text: valueWithProject,
+        idempotency_key: `h5_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+        source_type: SourceType.MANUAL_INPUT,
+      });
       const candidate = await createCandidate({
         raw_input_id: rawInput.raw_input_id,
         input_session_id: rawInput.input_session_id,
@@ -267,12 +327,7 @@ export default function H5MainPage() {
 
     if (matches.length === 1) {
       const matchedProject = matches[0].project;
-      setSelectedProject(matchedProject);
-      appendMessage({
-        type: 'status',
-        action: '录入',
-        content: `我先把这条记录关联到「${matchedProject.displayName}」。如果不对，可以重新输入项目名。`,
-      });
+      applyProjectContext(matchedProject, false);
       submitText(recordText, '录入', { skipProjectContextCheck: true, projectContext: matchedProject });
       return;
     }
@@ -298,7 +353,17 @@ export default function H5MainPage() {
 
   function applyProjectContext(project: H5ProjectContext, isNew: boolean) {
     const alreadySelected = selectedProject?.displayName === project.displayName;
+    const projectChanged = Boolean(selectedProject && selectedProject.projectId !== project.projectId);
+    if (projectChanged) {
+      setMessages([]);
+      setCandidateItems([]);
+      setHandledPendingIds([]);
+      setPendingItems([]);
+      setInteractionPrompt(null);
+      setInteractionPromptText('');
+    }
     setSelectedProject(project);
+    setRuntimeProjectId(project.projectId);
     if (isNew) {
       setProjectContexts((prev) => {
         if (prev.some((item) => item.displayName === project.displayName)) return prev;
@@ -600,17 +665,7 @@ export default function H5MainPage() {
     }
     if (interactionPrompt.kind === 'project') {
       const project = createLocalProjectContext(value);
-      setSelectedProject(project);
-      setProjectContexts((prev) => {
-        const normalizedProjectName = project.displayName.trim();
-        if (prev.some((item) => item.displayName === normalizedProjectName)) return prev;
-        return [...prev, project];
-      });
-      appendMessage({
-        type: 'status',
-        action: '录入',
-        content: `已关联到「${project.displayName}」。这个名字只作为本次记录的项目上下文，不会直接新建正式项目。`,
-      });
+      applyProjectContext(project, true);
       const recordText = pendingProjectRecordText;
       setPendingProjectRecordText('');
       setInteractionPrompt(null);
@@ -650,7 +705,7 @@ export default function H5MainPage() {
           <ul className="h5-task-list">
             {LOCAL_TASK_ITEMS.map((item) => <TaskRow key={item.id} title={item.title} urgent={item.tag} onClick={() => showToast(`事项详情：${item.title}`)} />)}
           </ul>
-          <button className="h5-task-more" onClick={() => setTodoOpen(true)}>查看全部（8）</button>
+          <button className="h5-task-more" onClick={() => setTodoOpen(true)}>查看全部（{LOCAL_TASK_ITEMS.length}）</button>
         </div>
         <button className="h5-task-right" onClick={() => setPendingOpen(true)}>
           <div className="h5-pending-label">待确认</div>
@@ -660,7 +715,11 @@ export default function H5MainPage() {
 
       <section className="h5-project-context-bar" aria-label="当前项目上下文">
         <div>
-          <span className="h5-project-context-label">当前项目</span>
+          <span className="h5-project-context-label">
+            {runtimeContext
+              ? `${runtimeContext.organization_name} · ${runtimeContext.role_names.join('、')}`
+              : '运行上下文加载中'}
+          </span>
           <strong>{selectedProject ? selectedProject.displayName : '未选择'}</strong>
         </div>
         <button
@@ -680,11 +739,6 @@ export default function H5MainPage() {
 
       <section className="h5-main-panel">
         <div className="h5-panel-bg" />
-        <div className="h5-weather-widget" aria-hidden="true">
-          <span className="h5-weather-icon">{LOCAL_WEATHER.icon}</span>
-          <span>{LOCAL_WEATHER.city}</span>
-          <strong>{LOCAL_WEATHER.temp}</strong>
-        </div>
         <div className="h5-panel-content h5-message-area">
           <ActionBanner hints={interactionHints} />
           <CandidateList items={candidateItems} />
@@ -697,7 +751,7 @@ export default function H5MainPage() {
         </div>
       </section>
 
-      <MockToast message={toastMsg} visible={toastVisible} />
+      <Toast message={toastMsg} visible={toastVisible} />
       <InputBox
         inputRef={inputRef}
         inputText={inputText}
@@ -710,13 +764,24 @@ export default function H5MainPage() {
         onVoiceEnd={finishVoicePress}
       />
       <UploadChoiceSheet open={uploadOpen} onClose={() => setUploadOpen(false)} onOpenCamera={() => cameraInputRef.current?.click()} onOpenAlbum={() => albumInputRef.current?.click()} onOpenFile={() => fileInputRef.current?.click()} />
-      <TodoListSheet open={todoOpen} onClose={() => setTodoOpen(false)} onMockAction={showToast} />
+      <TodoListSheet
+        open={todoOpen}
+        onClose={() => setTodoOpen(false)}
+        items={LOCAL_TASK_ITEMS}
+        onSelect={(item) => showToast(`事项详情：${item.title}`)}
+      />
       <ConfirmationPanel open={pendingOpen} onClose={() => setPendingOpen(false)} showToast={showToast} items={pendingItems} onConfirmItem={confirmPendingItem} onSupplementItem={(item) => { setPendingOpen(false); appendToCentralInput(`补充待确认事项：${item.display_text}`); showToast('请在中央输入框补充信息后提交。'); }} />
       <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onNavigate={(id, label, disabled) => {
         if (disabled) return showToast('当前公司仅一个，无需切换');
         setDrawerOpen(false);
         showToast(id === 'account' ? '账号切换功能即将上线' : `${label}，功能开发中`);
-      }} onLogout={() => setLogoutConfirmOpen(true)} profile={LOCAL_DRAWER_PROFILE} menuGroups={LOCAL_DRAWER_MENU_GROUPS} />
+      }} onLogout={() => setLogoutConfirmOpen(true)} profile={{
+        name: runtimeContext?.user_display_name || '未识别用户',
+        role: runtimeContext
+          ? `${runtimeContext.organization_name} · ${runtimeContext.role_names.join('、')}`
+          : '运行上下文加载中',
+        companyCount: runtimeContext ? 1 : 0,
+      }} menuGroups={LOCAL_DRAWER_MENU_GROUPS} />
       <ConfirmDialog open={logoutConfirmOpen} onCancel={() => setLogoutConfirmOpen(false)} onConfirm={() => { setLogoutConfirmOpen(false); setDrawerOpen(false); showToast('已退出登录'); }} />
       <InteractionPromptDialog prompt={interactionPrompt} value={interactionPromptText} onValueChange={setInteractionPromptText} onCancel={() => setInteractionPrompt(null)} onSubmit={submitInteractionPrompt} />
       <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic,.heif" capture="environment" className="h5-hidden-input" onChange={(event) => { void handleImageInput(event.target.files); event.currentTarget.value = ''; }} />

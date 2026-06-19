@@ -1,7 +1,10 @@
+import { buildRuntimeContextHeaders } from '../../s1_runtime_context/constants';
+
 type RequestOptions = {
   method?: 'GET' | 'POST';
   body?: unknown;
   errorMessage?: string;
+  headers?: Record<string, string>;
 };
 
 export function buildRequestUrl(endpoint: string): string {
@@ -18,7 +21,10 @@ export async function requestJSON<T>(
   url: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    ...buildRuntimeContextHeaders(),
+    ...options.headers,
+  };
   if (options.body) {
     headers['Content-Type'] = 'application/json';
   }

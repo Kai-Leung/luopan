@@ -11,6 +11,9 @@
     "test": "echo \"no h5 tests yet\""
   },
   "dependencies": {
+    "@capacitor/app": "8.1.0",
+    "@capacitor/core": "8.4.0",
+    "@capacitor/status-bar": "8.0.2",
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },

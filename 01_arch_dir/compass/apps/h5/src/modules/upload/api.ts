@@ -1,4 +1,5 @@
 import { buildRequestUrl } from '../input_flow/api/client';
+import { buildRuntimeContextHeaders } from '../s1_runtime_context/constants';
 import {
   UPLOAD_ALLOWED_DESCRIPTION,
   UPLOAD_ALLOWED_EXTENSIONS,
@@ -22,6 +23,7 @@ export async function uploadOriginalFile(file: File): Promise<UploadFileStoredRe
   try {
     response = await fetch(buildRequestUrl(UPLOAD_FILE_PATH), {
       method: 'POST',
+      headers: buildRuntimeContextHeaders(),
       body: formData,
     });
   } catch {

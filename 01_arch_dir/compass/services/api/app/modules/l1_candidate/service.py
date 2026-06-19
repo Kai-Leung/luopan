@@ -12,7 +12,7 @@ from fastapi import HTTPException
 
 from app.db.repositories import create_candidate as create_candidate_row
 from app.db.repositories import ensure_minimal_storage_tables
-from app.db.repositories import get_raw_input, update_candidate_payload
+from app.db.repositories import get_raw_input, load_json_field, update_candidate_payload
 from app.db.session import SessionLocal
 from app.modules.l1_candidate.extractor import build_candidate_summary, extract_candidate_fields
 from app.modules.l1_candidate.models import CandidateRecord
@@ -20,6 +20,10 @@ from app.modules.l1_candidate.schemas import L1CandidateCreate, L1CandidateItem,
 from app.modules.l1_candidate.segmenter import extract_raw_text, split_candidate_texts
 from app.modules.standard_governance.enums.source_types import SourceType
 from app.modules.standard_governance.enums.status_types import CandidateStatus
+from app.modules.s1_runtime_context.service import (
+    ensure_payload_in_current_scope,
+    runtime_context_snapshot,
+)
 
 CANDIDATE_MEMORY_STORE: List[CandidateRecord] = []
 
@@ -78,6 +82,7 @@ def _build_candidate_record(
     candidate_payload = {
         "raw_payload": raw_payload,
         "text": candidate_text,
+        "_runtime_context": runtime_context_snapshot(),
         "input_session_id": input_session_id,
         "candidate_index": candidate_index,
         "candidate_count": candidate_count,
@@ -156,8 +161,14 @@ def _require_existing_raw_input(raw_input_id: str) -> None:
     ensure_minimal_storage_tables()
     db = SessionLocal()
     try:
-        if get_raw_input(db, raw_input_id) is None:
+        raw_input = get_raw_input(db, raw_input_id)
+        if raw_input is None:
             raise HTTPException(status_code=400, detail="raw_input_id not found")
+        try:
+            raw_payload = load_json_field(raw_input.raw_payload)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="raw input payload is invalid")
+        ensure_payload_in_current_scope(raw_payload)
     finally:
         db.close()
 

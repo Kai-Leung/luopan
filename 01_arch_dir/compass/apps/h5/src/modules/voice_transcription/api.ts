@@ -1,4 +1,5 @@
 import { buildRequestUrl } from '../input_flow/api/client';
+import { buildRuntimeContextHeaders } from '../s1_runtime_context/constants';
 import type { VoiceTranscriptionResponse } from './types';
 
 const VOICE_TRANSCRIPTION_PATH = '/api/v1/voice-transcription/transcribe';
@@ -7,6 +8,7 @@ export async function transcribeVoiceAudio(audioBlob: Blob): Promise<VoiceTransc
   const response = await fetch(buildRequestUrl(VOICE_TRANSCRIPTION_PATH), {
     method: 'POST',
     headers: {
+      ...buildRuntimeContextHeaders(),
       'Content-Type': audioBlob.type || 'audio/webm',
     },
     body: audioBlob,

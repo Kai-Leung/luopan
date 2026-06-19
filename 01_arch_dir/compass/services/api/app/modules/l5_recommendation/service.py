@@ -1,21 +1,28 @@
-"""L5 recommendation draft service.
-
-Creates a non-final recommendation draft from L4/L3 references only.
-It does not persist recommendations, does not write L2, and does not trigger L6.
-"""
+"""Persistent L5 recommendation draft service."""
 
 from datetime import datetime, timezone
 from uuid import uuid4
 
 from fastapi import HTTPException
 
-from app.db.repositories import get_fact_record, load_json_field
+from app.db.repositories import (
+    create_recommendation_record,
+    ensure_minimal_storage_tables,
+    get_analysis_record,
+    get_fact_record,
+    load_json_field,
+)
 from app.db.session import SessionLocal
 from app.modules.l5_recommendation.schemas import (
     L5RecommendationDraftRequest,
     L5RecommendationDraftResponse,
 )
-from app.modules.standard_governance.processing import PROCESSING_DIRECTION_DRAFT, build_trace_ref
+from app.modules.s1_runtime_context.service import (
+    ensure_payload_in_current_scope,
+    get_current_runtime_context,
+)
+from app.modules.s3_audit_trace.service import new_trace_ref, record_trace_event
+from app.modules.standard_governance.processing import PROCESSING_DIRECTION_DRAFT
 
 
 def create_l5_recommendation_draft(
@@ -24,55 +31,85 @@ def create_l5_recommendation_draft(
     if not payload.analysis_id and not payload.source_fact_id:
         raise HTTPException(status_code=400, detail="analysis_id or source_fact_id is required")
 
-    fact_summary = None
-    if payload.source_fact_id:
-        fact_summary = _load_source_fact_summary(payload.source_fact_id)
-
-    if payload.analysis_id:
-        _validate_analysis_reference(payload.analysis_id)
-
-    return L5RecommendationDraftResponse(
-        recommendation_id=f"recommendation_{uuid4().hex}",
-        recommendation_status="draft",
-        source_fact_id=payload.source_fact_id,
-        analysis_id=payload.analysis_id,
-        trace_ref=build_trace_ref(),
-        processing_direction=PROCESSING_DIRECTION_DRAFT,
-        recommendation_summary=_build_recommendation_summary(
-            analysis_id=payload.analysis_id,
-            source_fact_id=payload.source_fact_id,
-            fact_summary=fact_summary,
-            context_payload=payload.context_payload,
-        ),
-        auto_executable=False,
-        created_at=datetime.now(timezone.utc),
-    )
-
-
-def _load_source_fact_summary(source_fact_id: str) -> str:
+    context = get_current_runtime_context()
+    ensure_minimal_storage_tables(include_fact_records=True)
     db = SessionLocal()
     try:
-        row = get_fact_record(db, source_fact_id)
-        if row is None:
-            raise HTTPException(status_code=404, detail="source fact not found")
-        try:
-            fact_payload = load_json_field(row.fact_payload)
-        except ValueError:
-            raise HTTPException(status_code=500, detail="source fact payload is invalid")
-        summary = (
-            fact_payload.get("candidate_summary")
-            or fact_payload.get("fact_summary")
-            or fact_payload.get("text")
-            or "暂无可读摘要"
+        analysis = get_analysis_record(db, payload.analysis_id) if payload.analysis_id else None
+        if payload.analysis_id and analysis is None:
+            raise HTTPException(status_code=404, detail="analysis preview not found")
+        if analysis and analysis.organization_id != context.organization_id:
+            raise HTTPException(status_code=403, detail="cross-organization analysis access is blocked")
+
+        source_fact_id = payload.source_fact_id or (analysis.source_fact_id if analysis else None)
+        if analysis and payload.source_fact_id and analysis.source_fact_id != payload.source_fact_id:
+            raise HTTPException(status_code=400, detail="analysis does not belong to source fact")
+
+        fact_summary, fact_trace_ref = _load_source_fact(db, source_fact_id)
+        trace_ref = analysis.trace_ref if analysis else fact_trace_ref or new_trace_ref()
+        recommendation_id = f"recommendation_{uuid4().hex}"
+        created_at = datetime.now(timezone.utc)
+        summary = _build_recommendation_summary(
+            analysis_id=payload.analysis_id,
+            source_fact_id=source_fact_id,
+            fact_summary=fact_summary,
+            context_payload=payload.context_payload,
         )
-        return str(summary)[:120]
+        create_recommendation_record(
+            db,
+            recommendation_id=recommendation_id,
+            recommendation_status="draft",
+            source_fact_id=source_fact_id,
+            analysis_id=payload.analysis_id,
+            trace_ref=trace_ref,
+            recommendation_summary=summary,
+            organization_id=context.organization_id,
+            created_at=created_at,
+        )
     finally:
         db.close()
 
+    record_trace_event(
+        trace_ref=trace_ref,
+        source_fact_id=source_fact_id,
+        analysis_id=payload.analysis_id,
+        recommendation_id=recommendation_id,
+        source_stage="l4_analysis",
+        target_stage="l5_recommendation",
+        action_type="recommendation_draft_created",
+    )
+    return L5RecommendationDraftResponse(
+        recommendation_id=recommendation_id,
+        recommendation_status="draft",
+        source_fact_id=source_fact_id,
+        analysis_id=payload.analysis_id,
+        trace_ref=trace_ref,
+        processing_direction=PROCESSING_DIRECTION_DRAFT,
+        recommendation_summary=summary,
+        auto_executable=False,
+        created_at=created_at,
+    )
 
-def _validate_analysis_reference(analysis_id: str) -> None:
-    if not analysis_id.startswith("analysis_"):
-        raise HTTPException(status_code=404, detail="analysis preview not found")
+
+def _load_source_fact(db, source_fact_id: str | None) -> tuple[str | None, str | None]:
+    if not source_fact_id:
+        return None, None
+    row = get_fact_record(db, source_fact_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="source fact not found")
+    try:
+        fact_payload = load_json_field(row.fact_payload)
+    except ValueError:
+        raise HTTPException(status_code=500, detail="source fact payload is invalid")
+    ensure_payload_in_current_scope(fact_payload)
+    summary = (
+        fact_payload.get("candidate_summary")
+        or fact_payload.get("fact_summary")
+        or fact_payload.get("text")
+        or "暂无可读摘要"
+    )
+    trace_ref = fact_payload.get("_trace_ref")
+    return str(summary)[:120], trace_ref if isinstance(trace_ref, str) else None
 
 
 def _build_recommendation_summary(

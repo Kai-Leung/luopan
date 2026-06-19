@@ -6,6 +6,7 @@ export interface L0RawInputRequest {
   image_ref?: string;
   file_ref?: string;
   input_session_id?: string;
+  idempotency_key?: string;
   source_type: SourceType;
 }
 

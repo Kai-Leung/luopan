@@ -33,3 +33,15 @@ def create_manual_review(
 
 def get_manual_review(db: Session, review_id: str) -> Optional[ManualReview]:
     return db.query(ManualReview).filter(ManualReview.review_id == review_id).first()
+
+
+def get_manual_review_by_governance_id(
+    db: Session,
+    governance_id: str,
+) -> Optional[ManualReview]:
+    return (
+        db.query(ManualReview)
+        .filter(ManualReview.governance_id == governance_id)
+        .order_by(ManualReview.id.desc())
+        .first()
+    )

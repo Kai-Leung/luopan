@@ -5,7 +5,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict
 
 from app.modules.standard_governance.enums.source_types import SourceType
 
@@ -16,5 +16,5 @@ class RawInputRecord:
     input_session_id: str
     received_at: datetime
     source_type: SourceType
-    raw_payload: Dict[str, Optional[str]]
+    raw_payload: Dict[str, object]
     status: str = "received_only"

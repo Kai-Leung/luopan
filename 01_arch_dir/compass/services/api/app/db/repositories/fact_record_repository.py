@@ -45,6 +45,12 @@ def get_fact_record(db: Session, fact_id: str) -> Optional["FactRecord"]:
     return db.query(FactRecord).filter(FactRecord.fact_id == fact_id).first()
 
 
+def get_fact_record_by_review_id(db: Session, review_id: str) -> Optional["FactRecord"]:
+    from app.db.models import FactRecord
+
+    return db.query(FactRecord).filter(FactRecord.review_id == review_id).first()
+
+
 def list_fact_records(
     db: Session,
     *,

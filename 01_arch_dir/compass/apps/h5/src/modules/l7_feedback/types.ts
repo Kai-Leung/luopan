@@ -16,6 +16,9 @@ export interface L7FeedbackResponse {
   processing_direction: 'candidate';
   feedback_note: string;
   feedback_type?: string;
+  return_raw_input_id: string;
+  return_candidate_id: string;
+  governance_required: true;
   returns_to_candidate_flow: true;
   created_at: string;
   standard_error?: StandardErrorResult;
