@@ -1,8 +1,17 @@
-name: Deploy Compass
+name: Deploy Compass Backend
 
 on:
+  workflow_dispatch:
+
   push:
     branches: [main]
+    paths:
+      - "services/api/**"
+      - ".github/workflows/deploy.yml"
+
+concurrency:
+  group: compass-backend-production
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -18,6 +27,8 @@ jobs:
           username: root
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            set -e
             cd /root/compass
-            git pull origin main
+            git pull --ff-only origin main
             systemctl restart compass-backend
+            systemctl is-active --quiet compass-backend
