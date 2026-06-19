@@ -57,10 +57,17 @@ tests/
 01_arch_dir/compass/services/api/tests/
 
 # 共享类型（部署不需要）
-01_arch_dir/compass/packages/
 
 # 前端 node_modules (已忽略，二次确认)
 01_arch_dir/compass/apps/h5/node_modules/
 
 # 前端 tsbuildinfo
 *.tsbuildinfo
+
+
+# ===== 外层开发包治理文件（不进 GitHub，不上服务器）=====
+# 以下文件属于开发包分发层，不纳入 compass 正式代码仓库
+/AGENTS.md
+/README.md
+/FIRST_CLOUD_TASK_PROMPT.md
+/manifest.json
