@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "l7_feedback",
+  "type": "object",
+  "$defs": {
+    "L7FeedbackRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feedback_note"
+      ],
+      "properties": {
+        "execution_response_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_fact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "feedback_note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "feedback_type": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "execution_response_id"
+          ]
+        },
+        {
+          "required": [
+            "source_fact_id"
+          ]
+        }
+      ]
+    },
+    "L7FeedbackResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feedback_id",
+        "feedback_status",
+        "processing_direction",
+        "feedback_note",
+        "return_raw_input_id",
+        "return_candidate_id",
+        "governance_required",
+        "returns_to_candidate_flow",
+        "created_at"
+      ],
+      "properties": {
+        "feedback_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "feedback_status": {
+          "const": "candidate"
+        },
+        "execution_response_id": {
+          "type": "string"
+        },
+        "source_fact_id": {
+          "type": "string"
+        },
+        "trace_ref": {
+          "type": "string"
+        },
+        "processing_direction": {
+          "const": "candidate"
+        },
+        "feedback_note": {
+          "type": "string"
+        },
+        "feedback_type": {
+          "type": "string"
+        },
+        "return_raw_input_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "return_candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "governance_required": {
+          "const": true
+        },
+        "returns_to_candidate_flow": {
+          "const": true
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "standard_error": {
+          "$ref": "standard_processing.schema.json#/$defs/StandardErrorResult"
+        }
+      }
+    }
+  },
+  "properties": {
+    "request": {
+      "$ref": "#/$defs/L7FeedbackRequest"
+    },
+    "response": {
+      "$ref": "#/$defs/L7FeedbackResponse"
+    }
+  }
+}

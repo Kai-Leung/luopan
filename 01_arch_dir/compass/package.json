@@ -9,7 +9,11 @@
     "packages/*"
   ],
   "scripts": {
-    "check": "echo \"Use app-specific check scripts\"",
+    "check:h5": "npm run check --workspace @compass/h5",
+    "check:pc": "npm run check --workspace @compass/pc",
+    "check:contracts": "python3 scripts/check/contracts_consistency.py",
+    "check:frontend": "npm run check:h5 && npm run check:pc",
+    "check": "npm run check:frontend && npm run check:contracts",
     "build": "echo \"Use app-specific build scripts\"",
     "test": "echo \"Use app-specific test scripts\""
   }

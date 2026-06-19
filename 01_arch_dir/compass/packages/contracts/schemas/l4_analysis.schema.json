@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "l4_analysis",
+  "type": "object",
+  "$defs": {
+    "L4AnalysisPreviewRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fact_id"
+      ],
+      "properties": {
+        "fact_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "L4AnalysisPreviewResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analysis_id",
+        "source_fact_id",
+        "processing_direction",
+        "analysis_status",
+        "analysis_summary",
+        "readonly",
+        "created_at"
+      ],
+      "properties": {
+        "analysis_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_fact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trace_ref": {
+          "type": "string"
+        },
+        "processing_direction": {
+          "const": "readonly"
+        },
+        "analysis_status": {
+          "const": "preview"
+        },
+        "analysis_summary": {
+          "type": "string"
+        },
+        "readonly": {
+          "const": true
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "standard_error": {
+          "$ref": "standard_processing.schema.json#/$defs/StandardErrorResult"
+        }
+      }
+    }
+  },
+  "properties": {
+    "request": {
+      "$ref": "#/$defs/L4AnalysisPreviewRequest"
+    },
+    "response": {
+      "$ref": "#/$defs/L4AnalysisPreviewResponse"
+    }
+  }
+}

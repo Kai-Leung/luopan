@@ -1,0 +1,4203 @@
+{
+  "components": {
+    "schemas": {
+      "AiAssistCandidateIntakeRequest": {
+        "properties": {
+          "assist_type": {
+            "enum": [
+              "transcription_cleanup",
+              "candidate_organization",
+              "gap_hint",
+              "analysis_suggestion"
+            ],
+            "title": "Assist Type",
+            "type": "string"
+          },
+          "candidate_text": {
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Candidate Text",
+            "type": "string"
+          },
+          "model_call_ref": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Model Call Ref",
+            "type": "string"
+          },
+          "source_reference": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Reference"
+          },
+          "uncertainty_hints": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Uncertainty Hints",
+            "type": "array"
+          }
+        },
+        "required": [
+          "model_call_ref",
+          "assist_type",
+          "candidate_text"
+        ],
+        "title": "AiAssistCandidateIntakeRequest",
+        "type": "object"
+      },
+      "AiAssistCandidateIntakeResponse": {
+        "properties": {
+          "candidate_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Candidate Ids",
+            "type": "array"
+          },
+          "candidate_status": {
+            "const": "new_candidate",
+            "title": "Candidate Status",
+            "type": "string"
+          },
+          "creates_fact": {
+            "const": false,
+            "default": false,
+            "title": "Creates Fact",
+            "type": "boolean"
+          },
+          "governance_required": {
+            "const": true,
+            "default": true,
+            "title": "Governance Required",
+            "type": "boolean"
+          },
+          "input_session_id": {
+            "title": "Input Session Id",
+            "type": "string"
+          },
+          "intake_id": {
+            "title": "Intake Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "next_stage": {
+            "const": "s2_governance",
+            "default": "s2_governance",
+            "title": "Next Stage",
+            "type": "string"
+          },
+          "raw_input_id": {
+            "title": "Raw Input Id",
+            "type": "string"
+          },
+          "trace_ref": {
+            "title": "Trace Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intake_id",
+          "trace_ref",
+          "raw_input_id",
+          "input_session_id",
+          "candidate_ids",
+          "candidate_status",
+          "message"
+        ],
+        "title": "AiAssistCandidateIntakeResponse",
+        "type": "object"
+      },
+      "CandidateStatus": {
+        "description": "candidate_status",
+        "enum": [
+          "new_candidate",
+          "pending_completion",
+          "under_review",
+          "ready_for_confirmation",
+          "accepted",
+          "rejected",
+          "converted",
+          "expired"
+        ],
+        "title": "CandidateStatus",
+        "type": "string"
+      },
+      "ExternalFeedbackIntakeRequest": {
+        "properties": {
+          "attachment_refs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Attachment Refs",
+            "type": "array"
+          },
+          "content": {
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "external_source": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "External Source",
+            "type": "string"
+          },
+          "feedback_type": {
+            "enum": [
+              "customer_feedback",
+              "partner_receipt",
+              "external_document",
+              "external_status"
+            ],
+            "title": "Feedback Type",
+            "type": "string"
+          },
+          "project_hint": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Hint"
+          },
+          "source_reference": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Source Reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "external_source",
+          "source_reference",
+          "feedback_type",
+          "content"
+        ],
+        "title": "ExternalFeedbackIntakeRequest",
+        "type": "object"
+      },
+      "ExternalFeedbackIntakeResponse": {
+        "properties": {
+          "candidate_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Candidate Ids",
+            "type": "array"
+          },
+          "candidate_status": {
+            "const": "new_candidate",
+            "title": "Candidate Status",
+            "type": "string"
+          },
+          "creates_fact": {
+            "const": false,
+            "default": false,
+            "title": "Creates Fact",
+            "type": "boolean"
+          },
+          "governance_required": {
+            "const": true,
+            "default": true,
+            "title": "Governance Required",
+            "type": "boolean"
+          },
+          "input_session_id": {
+            "title": "Input Session Id",
+            "type": "string"
+          },
+          "intake_id": {
+            "title": "Intake Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "next_stage": {
+            "const": "s2_governance",
+            "default": "s2_governance",
+            "title": "Next Stage",
+            "type": "string"
+          },
+          "raw_input_id": {
+            "title": "Raw Input Id",
+            "type": "string"
+          },
+          "trace_ref": {
+            "title": "Trace Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intake_id",
+          "trace_ref",
+          "raw_input_id",
+          "input_session_id",
+          "candidate_ids",
+          "candidate_status",
+          "message"
+        ],
+        "title": "ExternalFeedbackIntakeResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "L1CandidateCreate": {
+        "properties": {
+          "input_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Session Id"
+          },
+          "raw_input_id": {
+            "title": "Raw Input Id",
+            "type": "string"
+          },
+          "raw_payload": {
+            "additionalProperties": true,
+            "title": "Raw Payload",
+            "type": "object"
+          },
+          "source_type": {
+            "$ref": "#/components/schemas/SourceType"
+          },
+          "supplement_candidate_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplement Candidate Id"
+          }
+        },
+        "required": [
+          "raw_input_id",
+          "raw_payload",
+          "source_type"
+        ],
+        "title": "L1CandidateCreate",
+        "type": "object"
+      },
+      "L1CandidateItem": {
+        "properties": {
+          "candidate_id": {
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "candidate_payload": {
+            "additionalProperties": true,
+            "title": "Candidate Payload",
+            "type": "object"
+          },
+          "candidate_status": {
+            "$ref": "#/components/schemas/CandidateStatus"
+          },
+          "input_session_id": {
+            "title": "Input Session Id",
+            "type": "string"
+          },
+          "raw_input_id": {
+            "title": "Raw Input Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate_id",
+          "input_session_id",
+          "raw_input_id",
+          "candidate_status",
+          "candidate_payload"
+        ],
+        "title": "L1CandidateItem",
+        "type": "object"
+      },
+      "L1CandidateResponse": {
+        "properties": {
+          "candidate_id": {
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "candidate_payload": {
+            "additionalProperties": true,
+            "title": "Candidate Payload",
+            "type": "object"
+          },
+          "candidate_status": {
+            "$ref": "#/components/schemas/CandidateStatus"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/L1CandidateItem"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "input_session_id": {
+            "title": "Input Session Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "raw_input_id": {
+            "title": "Raw Input Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate_id",
+          "input_session_id",
+          "raw_input_id",
+          "candidate_status",
+          "candidate_payload",
+          "candidates",
+          "message"
+        ],
+        "title": "L1CandidateResponse",
+        "type": "object"
+      },
+      "L2FactCreateRequest": {
+        "properties": {
+          "candidate_id": {
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "fact_payload": {
+            "additionalProperties": true,
+            "title": "Fact Payload",
+            "type": "object"
+          },
+          "fact_type": {
+            "title": "Fact Type",
+            "type": "string"
+          },
+          "governance_id": {
+            "title": "Governance Id",
+            "type": "string"
+          },
+          "raw_input_id": {
+            "title": "Raw Input Id",
+            "type": "string"
+          },
+          "review_id": {
+            "title": "Review Id",
+            "type": "string"
+          },
+          "review_status": {
+            "title": "Review Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "raw_input_id",
+          "candidate_id",
+          "governance_id",
+          "review_id",
+          "review_status",
+          "fact_type",
+          "fact_payload"
+        ],
+        "title": "L2FactCreateRequest",
+        "type": "object"
+      },
+      "L2FactResponse": {
+        "properties": {
+          "candidate_id": {
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "fact_id": {
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "fact_payload": {
+            "additionalProperties": true,
+            "title": "Fact Payload",
+            "type": "object"
+          },
+          "fact_status": {
+            "const": "active_fact",
+            "title": "Fact Status",
+            "type": "string"
+          },
+          "governance_id": {
+            "title": "Governance Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "raw_input_id": {
+            "title": "Raw Input Id",
+            "type": "string"
+          },
+          "review_id": {
+            "title": "Review Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fact_id",
+          "fact_status",
+          "fact_payload",
+          "raw_input_id",
+          "candidate_id",
+          "governance_id",
+          "review_id",
+          "message"
+        ],
+        "title": "L2FactResponse",
+        "type": "object"
+      },
+      "L3FactListItem": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "fact_id": {
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "fact_payload_summary": {
+            "title": "Fact Payload Summary",
+            "type": "string"
+          },
+          "fact_status": {
+            "const": "active_fact",
+            "title": "Fact Status",
+            "type": "string"
+          },
+          "fact_type": {
+            "title": "Fact Type",
+            "type": "string"
+          },
+          "source_type": {
+            "title": "Source Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fact_id",
+          "fact_type",
+          "fact_payload_summary",
+          "source_type",
+          "fact_status",
+          "created_at"
+        ],
+        "title": "L3FactListItem",
+        "type": "object"
+      },
+      "L3FactListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/L3FactListItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "L3FactListResponse",
+        "type": "object"
+      },
+      "L3FactViewResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "fact_id": {
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "fact_payload": {
+            "additionalProperties": true,
+            "title": "Fact Payload",
+            "type": "object"
+          },
+          "fact_status": {
+            "const": "active_fact",
+            "title": "Fact Status",
+            "type": "string"
+          },
+          "fact_type": {
+            "title": "Fact Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fact_id",
+          "fact_type",
+          "fact_payload",
+          "fact_status",
+          "created_at"
+        ],
+        "title": "L3FactViewResponse",
+        "type": "object"
+      },
+      "L4AnalysisPreviewResponse": {
+        "properties": {
+          "analysis_id": {
+            "title": "Analysis Id",
+            "type": "string"
+          },
+          "analysis_status": {
+            "const": "preview",
+            "title": "Analysis Status",
+            "type": "string"
+          },
+          "analysis_summary": {
+            "title": "Analysis Summary",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "processing_direction": {
+            "const": "readonly",
+            "title": "Processing Direction",
+            "type": "string"
+          },
+          "readonly": {
+            "const": true,
+            "title": "Readonly",
+            "type": "boolean"
+          },
+          "source_fact_id": {
+            "title": "Source Fact Id",
+            "type": "string"
+          },
+          "standard_error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StandardErrorResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trace_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Ref"
+          }
+        },
+        "required": [
+          "analysis_id",
+          "source_fact_id",
+          "processing_direction",
+          "analysis_status",
+          "analysis_summary",
+          "readonly",
+          "created_at"
+        ],
+        "title": "L4AnalysisPreviewResponse",
+        "type": "object"
+      },
+      "L5RecommendationDraftRequest": {
+        "properties": {
+          "analysis_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Id"
+          },
+          "context_payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Payload"
+          },
+          "source_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Fact Id"
+          }
+        },
+        "title": "L5RecommendationDraftRequest",
+        "type": "object"
+      },
+      "L5RecommendationDraftResponse": {
+        "properties": {
+          "analysis_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Id"
+          },
+          "auto_executable": {
+            "const": false,
+            "title": "Auto Executable",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "processing_direction": {
+            "const": "draft",
+            "title": "Processing Direction",
+            "type": "string"
+          },
+          "recommendation_id": {
+            "title": "Recommendation Id",
+            "type": "string"
+          },
+          "recommendation_status": {
+            "const": "draft",
+            "title": "Recommendation Status",
+            "type": "string"
+          },
+          "recommendation_summary": {
+            "title": "Recommendation Summary",
+            "type": "string"
+          },
+          "source_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Fact Id"
+          },
+          "standard_error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StandardErrorResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trace_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Ref"
+          }
+        },
+        "required": [
+          "recommendation_id",
+          "recommendation_status",
+          "processing_direction",
+          "recommendation_summary",
+          "auto_executable",
+          "created_at"
+        ],
+        "title": "L5RecommendationDraftResponse",
+        "type": "object"
+      },
+      "L6ExecutionResponseRequest": {
+        "properties": {
+          "execution_note": {
+            "title": "Execution Note",
+            "type": "string"
+          },
+          "execution_status": {
+            "title": "Execution Status",
+            "type": "string"
+          },
+          "recommendation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendation Id"
+          },
+          "source_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Fact Id"
+          }
+        },
+        "required": [
+          "execution_note",
+          "execution_status"
+        ],
+        "title": "L6ExecutionResponseRequest",
+        "type": "object"
+      },
+      "L6ExecutionResponseResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "creates_fact": {
+            "const": false,
+            "title": "Creates Fact",
+            "type": "boolean"
+          },
+          "execution_note": {
+            "title": "Execution Note",
+            "type": "string"
+          },
+          "execution_response_id": {
+            "title": "Execution Response Id",
+            "type": "string"
+          },
+          "execution_status": {
+            "title": "Execution Status",
+            "type": "string"
+          },
+          "processing_direction": {
+            "const": "response",
+            "title": "Processing Direction",
+            "type": "string"
+          },
+          "recommendation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendation Id"
+          },
+          "source_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Fact Id"
+          },
+          "standard_error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StandardErrorResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trace_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Ref"
+          }
+        },
+        "required": [
+          "execution_response_id",
+          "execution_status",
+          "processing_direction",
+          "execution_note",
+          "creates_fact",
+          "created_at"
+        ],
+        "title": "L6ExecutionResponseResponse",
+        "type": "object"
+      },
+      "L7FeedbackRequest": {
+        "properties": {
+          "execution_response_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Execution Response Id"
+          },
+          "feedback_note": {
+            "title": "Feedback Note",
+            "type": "string"
+          },
+          "feedback_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback Type"
+          },
+          "source_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Fact Id"
+          }
+        },
+        "required": [
+          "feedback_note"
+        ],
+        "title": "L7FeedbackRequest",
+        "type": "object"
+      },
+      "L7FeedbackResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_response_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Execution Response Id"
+          },
+          "feedback_id": {
+            "title": "Feedback Id",
+            "type": "string"
+          },
+          "feedback_note": {
+            "title": "Feedback Note",
+            "type": "string"
+          },
+          "feedback_status": {
+            "const": "candidate",
+            "title": "Feedback Status",
+            "type": "string"
+          },
+          "feedback_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback Type"
+          },
+          "governance_required": {
+            "const": true,
+            "title": "Governance Required",
+            "type": "boolean"
+          },
+          "processing_direction": {
+            "const": "candidate",
+            "title": "Processing Direction",
+            "type": "string"
+          },
+          "return_candidate_id": {
+            "title": "Return Candidate Id",
+            "type": "string"
+          },
+          "return_raw_input_id": {
+            "title": "Return Raw Input Id",
+            "type": "string"
+          },
+          "returns_to_candidate_flow": {
+            "const": true,
+            "title": "Returns To Candidate Flow",
+            "type": "boolean"
+          },
+          "source_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Fact Id"
+          },
+          "standard_error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StandardErrorResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trace_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Ref"
+          }
+        },
+        "required": [
+          "feedback_id",
+          "feedback_status",
+          "processing_direction",
+          "feedback_note",
+          "return_raw_input_id",
+          "return_candidate_id",
+          "governance_required",
+          "returns_to_candidate_flow",
+          "created_at"
+        ],
+        "title": "L7FeedbackResponse",
+        "type": "object"
+      },
+      "ManualConfirmationReviewRequest": {
+        "properties": {
+          "confirmed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By"
+          },
+          "governance_id": {
+            "title": "Governance Id",
+            "type": "string"
+          },
+          "governance_status": {
+            "enum": [
+              "auto_pass",
+              "needs_completion",
+              "needs_confirmation",
+              "blocked"
+            ],
+            "title": "Governance Status",
+            "type": "string"
+          },
+          "pending_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Id"
+          },
+          "required_permission": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required Permission"
+          },
+          "review_action": {
+            "enum": [
+              "confirm",
+              "return_for_completion",
+              "reject"
+            ],
+            "title": "Review Action",
+            "type": "string"
+          }
+        },
+        "required": [
+          "governance_id",
+          "governance_status",
+          "review_action"
+        ],
+        "title": "ManualConfirmationReviewRequest",
+        "type": "object"
+      },
+      "ManualConfirmationReviewResponse": {
+        "properties": {
+          "governance_id": {
+            "title": "Governance Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "policy_decision": {
+            "const": "manual_review_required",
+            "title": "Policy Decision",
+            "type": "string"
+          },
+          "project_asset": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Asset"
+          },
+          "review_id": {
+            "title": "Review Id",
+            "type": "string"
+          },
+          "review_status": {
+            "enum": [
+              "confirmed_candidate",
+              "returned_for_completion",
+              "rejected_candidate"
+            ],
+            "title": "Review Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "review_id",
+          "governance_id",
+          "review_status",
+          "policy_decision",
+          "message"
+        ],
+        "title": "ManualConfirmationReviewResponse",
+        "type": "object"
+      },
+      "PendingConfirmationCreateRequest": {
+        "properties": {
+          "candidate_id": {
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "display_text": {
+            "title": "Display Text",
+            "type": "string"
+          },
+          "fact_payload": {
+            "additionalProperties": true,
+            "title": "Fact Payload",
+            "type": "object"
+          },
+          "fact_type": {
+            "title": "Fact Type",
+            "type": "string"
+          },
+          "governance_id": {
+            "title": "Governance Id",
+            "type": "string"
+          },
+          "governance_status": {
+            "enum": [
+              "auto_pass",
+              "needs_completion",
+              "needs_confirmation",
+              "blocked"
+            ],
+            "title": "Governance Status",
+            "type": "string"
+          },
+          "input_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Session Id"
+          },
+          "raw_input_id": {
+            "title": "Raw Input Id",
+            "type": "string"
+          },
+          "required_permission": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required Permission"
+          }
+        },
+        "required": [
+          "raw_input_id",
+          "candidate_id",
+          "governance_id",
+          "governance_status",
+          "fact_type",
+          "fact_payload",
+          "display_text"
+        ],
+        "title": "PendingConfirmationCreateRequest",
+        "type": "object"
+      },
+      "PendingConfirmationItem": {
+        "properties": {
+          "candidate_id": {
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "display_text": {
+            "title": "Display Text",
+            "type": "string"
+          },
+          "fact_payload": {
+            "additionalProperties": true,
+            "title": "Fact Payload",
+            "type": "object"
+          },
+          "fact_type": {
+            "title": "Fact Type",
+            "type": "string"
+          },
+          "governance_id": {
+            "title": "Governance Id",
+            "type": "string"
+          },
+          "governance_status": {
+            "enum": [
+              "auto_pass",
+              "needs_completion",
+              "needs_confirmation",
+              "blocked"
+            ],
+            "title": "Governance Status",
+            "type": "string"
+          },
+          "input_session_id": {
+            "title": "Input Session Id",
+            "type": "string"
+          },
+          "pending_id": {
+            "title": "Pending Id",
+            "type": "string"
+          },
+          "raw_input_id": {
+            "title": "Raw Input Id",
+            "type": "string"
+          },
+          "required_permission": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required Permission"
+          }
+        },
+        "required": [
+          "pending_id",
+          "input_session_id",
+          "raw_input_id",
+          "candidate_id",
+          "governance_id",
+          "governance_status",
+          "fact_type",
+          "fact_payload",
+          "display_text",
+          "created_at"
+        ],
+        "title": "PendingConfirmationItem",
+        "type": "object"
+      },
+      "PendingConfirmationListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PendingConfirmationItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "PendingConfirmationListResponse",
+        "type": "object"
+      },
+      "PermissionResult": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "denied_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Denied Reason"
+          }
+        },
+        "required": [
+          "action",
+          "allowed"
+        ],
+        "title": "PermissionResult",
+        "type": "object"
+      },
+      "RawInputCreate": {
+        "properties": {
+          "file_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Ref"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "image_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Ref"
+          },
+          "input_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Session Id"
+          },
+          "source_type": {
+            "$ref": "#/components/schemas/SourceType"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          }
+        },
+        "required": [
+          "source_type"
+        ],
+        "title": "RawInputCreate",
+        "type": "object"
+      },
+      "RawInputReceived": {
+        "properties": {
+          "input_session_id": {
+            "title": "Input Session Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "raw_input_id": {
+            "title": "Raw Input Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "raw_input_id",
+          "input_session_id",
+          "status",
+          "message"
+        ],
+        "title": "RawInputReceived",
+        "type": "object"
+      },
+      "RuntimeContextResponse": {
+        "properties": {
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Allowed Actions",
+            "type": "array"
+          },
+          "context_id": {
+            "title": "Context Id",
+            "type": "string"
+          },
+          "context_source": {
+            "enum": [
+              "controlled_claim",
+              "development_baseline"
+            ],
+            "title": "Context Source",
+            "type": "string"
+          },
+          "denied_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Denied Reason"
+          },
+          "is_authenticated": {
+            "default": true,
+            "title": "Is Authenticated",
+            "type": "boolean"
+          },
+          "organization_id": {
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "organization_name": {
+            "title": "Organization Name",
+            "type": "string"
+          },
+          "permission_results": {
+            "items": {
+              "$ref": "#/components/schemas/PermissionResult"
+            },
+            "title": "Permission Results",
+            "type": "array"
+          },
+          "project_scope": {
+            "items": {
+              "$ref": "#/components/schemas/RuntimeProjectScopeItem"
+            },
+            "title": "Project Scope",
+            "type": "array"
+          },
+          "project_scope_mode": {
+            "enum": [
+              "organization",
+              "selected_projects"
+            ],
+            "title": "Project Scope Mode",
+            "type": "string"
+          },
+          "role_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Role Ids",
+            "type": "array"
+          },
+          "role_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Role Names",
+            "type": "array"
+          },
+          "selected_project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Project Id"
+          },
+          "user_display_name": {
+            "title": "User Display Name",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "context_id",
+          "user_id",
+          "user_display_name",
+          "organization_id",
+          "organization_name",
+          "role_ids",
+          "role_names",
+          "project_scope_mode",
+          "project_scope",
+          "allowed_actions",
+          "permission_results",
+          "context_source"
+        ],
+        "title": "RuntimeContextResponse",
+        "type": "object"
+      },
+      "RuntimeProjectScopeItem": {
+        "properties": {
+          "aliases": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Aliases",
+            "type": "array"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "display_name"
+        ],
+        "title": "RuntimeProjectScopeItem",
+        "type": "object"
+      },
+      "S2GovernanceCheckRequest": {
+        "properties": {
+          "candidate_id": {
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "candidate_payload": {
+            "additionalProperties": true,
+            "title": "Candidate Payload",
+            "type": "object"
+          },
+          "candidate_status": {
+            "title": "Candidate Status",
+            "type": "string"
+          },
+          "input_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Session Id"
+          }
+        },
+        "required": [
+          "candidate_id",
+          "candidate_payload",
+          "candidate_status"
+        ],
+        "title": "S2GovernanceCheckRequest",
+        "type": "object"
+      },
+      "S2GovernanceCheckResponse": {
+        "properties": {
+          "candidate_id": {
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "governance_id": {
+            "title": "Governance Id",
+            "type": "string"
+          },
+          "governance_status": {
+            "enum": [
+              "auto_pass",
+              "needs_completion",
+              "needs_confirmation",
+              "blocked"
+            ],
+            "title": "Governance Status",
+            "type": "string"
+          },
+          "input_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Session Id"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "missing_fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Fields",
+            "type": "array"
+          },
+          "next_action": {
+            "enum": [
+              "ask_more",
+              "need_confirm",
+              "blocked",
+              "ready_to_chain"
+            ],
+            "title": "Next Action",
+            "type": "string"
+          },
+          "question_prompts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Question Prompts",
+            "type": "array"
+          },
+          "required_permission": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required Permission"
+          },
+          "risk_hints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Risk Hints",
+            "type": "array"
+          },
+          "risk_level": {
+            "enum": [
+              "none",
+              "low",
+              "medium",
+              "high",
+              "blocking"
+            ],
+            "title": "Risk Level",
+            "type": "string"
+          },
+          "validation_hints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Validation Hints",
+            "type": "array"
+          }
+        },
+        "required": [
+          "governance_id",
+          "candidate_id",
+          "governance_status",
+          "missing_fields",
+          "risk_level",
+          "question_prompts",
+          "validation_hints",
+          "risk_hints",
+          "next_action",
+          "message"
+        ],
+        "title": "S2GovernanceCheckResponse",
+        "type": "object"
+      },
+      "S3TraceEvent": {
+        "properties": {
+          "action_type": {
+            "title": "Action Type",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "analysis_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Id"
+          },
+          "candidate_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_response_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Execution Response Id"
+          },
+          "feedback_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback Id"
+          },
+          "governance_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Governance Id"
+          },
+          "no_write_l2": {
+            "default": true,
+            "title": "No Write L2",
+            "type": "boolean"
+          },
+          "organization_id": {
+            "title": "Organization Id",
+            "type": "string"
+          },
+          "raw_input_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Input Id"
+          },
+          "readonly": {
+            "default": true,
+            "title": "Readonly",
+            "type": "boolean"
+          },
+          "recommendation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendation Id"
+          },
+          "review_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Id"
+          },
+          "source_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Fact Id"
+          },
+          "source_stage": {
+            "title": "Source Stage",
+            "type": "string"
+          },
+          "target_stage": {
+            "title": "Target Stage",
+            "type": "string"
+          },
+          "trace_ref": {
+            "title": "Trace Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trace_ref",
+          "created_at",
+          "source_stage",
+          "target_stage",
+          "action_type",
+          "actor_id",
+          "organization_id"
+        ],
+        "title": "S3TraceEvent",
+        "type": "object"
+      },
+      "S3TraceSummaryResponse": {
+        "properties": {
+          "chain_summary": {
+            "title": "Chain Summary",
+            "type": "string"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/S3TraceEvent"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "no_write_l2": {
+            "default": true,
+            "title": "No Write L2",
+            "type": "boolean"
+          },
+          "source_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Fact Id"
+          },
+          "trace_ref": {
+            "title": "Trace Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trace_ref",
+          "chain_summary",
+          "events"
+        ],
+        "title": "S3TraceSummaryResponse",
+        "type": "object"
+      },
+      "SourceType": {
+        "description": "source_type",
+        "enum": [
+          "manual_input",
+          "uploaded_document",
+          "image_input",
+          "audio_input",
+          "chat_record",
+          "external_feedback",
+          "system_generated",
+          "ai_assisted",
+          "interface_callback",
+          "template_output",
+          "view_output",
+          "manual_confirmation",
+          "system_validation",
+          "feedback_return",
+          "external_collaboration"
+        ],
+        "title": "SourceType",
+        "type": "string"
+      },
+      "StandardErrorResult": {
+        "properties": {
+          "error_code": {
+            "title": "Error Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "processing_direction": {
+            "default": "failed",
+            "enum": [
+              "readonly",
+              "draft",
+              "response",
+              "candidate",
+              "blocked",
+              "need_supplement",
+              "need_confirmation",
+              "failed"
+            ],
+            "title": "Processing Direction",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error_code",
+          "message"
+        ],
+        "title": "StandardErrorResult",
+        "type": "object"
+      },
+      "UploadFileStoredResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "file_size": {
+            "title": "File Size",
+            "type": "integer"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "saved": {
+            "title": "Saved",
+            "type": "boolean"
+          },
+          "storage_path": {
+            "title": "Storage Path",
+            "type": "string"
+          },
+          "upload_id": {
+            "title": "Upload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upload_id",
+          "filename",
+          "content_type",
+          "file_size",
+          "storage_path",
+          "saved"
+        ],
+        "title": "UploadFileStoredResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VoiceTranscriptionResponse": {
+        "properties": {
+          "status": {
+            "const": "transcribed",
+            "title": "Status",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "text"
+        ],
+        "title": "VoiceTranscriptionResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Compass",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/ai-assist/candidates/intake": {
+      "post": {
+        "operationId": "intake_candidate_api_v1_ai_assist_candidates_intake_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiAssistCandidateIntakeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiAssistCandidateIntakeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Intake Candidate",
+        "tags": [
+          "ai-assist"
+        ]
+      }
+    },
+    "/api/v1/external-collaboration/feedback/intake": {
+      "post": {
+        "operationId": "intake_feedback_api_v1_external_collaboration_feedback_intake_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalFeedbackIntakeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExternalFeedbackIntakeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Intake Feedback",
+        "tags": [
+          "external-collaboration"
+        ]
+      }
+    },
+    "/api/v1/l0/raw-input": {
+      "post": {
+        "operationId": "create_raw_input_api_v1_l0_raw_input_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RawInputCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RawInputReceived"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Raw Input",
+        "tags": [
+          "l0-raw-input"
+        ]
+      }
+    },
+    "/api/v1/l1/candidates": {
+      "post": {
+        "operationId": "create_l1_candidate_api_v1_l1_candidates_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/L1CandidateCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L1CandidateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create L1 Candidate",
+        "tags": [
+          "l1-candidate"
+        ]
+      }
+    },
+    "/api/v1/l2/source-of-truth/facts": {
+      "post": {
+        "operationId": "create_fact_api_v1_l2_source_of_truth_facts_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/L2FactCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L2FactResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Fact",
+        "tags": [
+          "l2-source-of-truth"
+        ]
+      }
+    },
+    "/api/v1/l3/facts": {
+      "get": {
+        "description": "List L3 facts with optional filtering and pagination. Read-only.",
+        "operationId": "list_facts_api_v1_l3_facts_get",
+        "parameters": [
+          {
+            "description": "Filter by fact type",
+            "in": "query",
+            "name": "fact_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by fact type",
+              "title": "Fact Type"
+            }
+          },
+          {
+            "description": "Search keyword in fact_payload",
+            "in": "query",
+            "name": "keyword",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search keyword in fact_payload",
+              "title": "Keyword"
+            }
+          },
+          {
+            "description": "Max items per page",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Max items per page",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Pagination offset",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Pagination offset",
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L3FactListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Facts",
+        "tags": [
+          "l3-facts"
+        ]
+      }
+    },
+    "/api/v1/l3/facts/{fact_id}": {
+      "get": {
+        "operationId": "read_fact_api_v1_l3_facts__fact_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fact_id",
+            "required": true,
+            "schema": {
+              "title": "Fact Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L3FactViewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Fact",
+        "tags": [
+          "l3-facts"
+        ]
+      }
+    },
+    "/api/v1/l4/analysis/preview": {
+      "get": {
+        "operationId": "read_analysis_preview_api_v1_l4_analysis_preview_get",
+        "parameters": [
+          {
+            "description": "Existing L2/L3 fact id",
+            "in": "query",
+            "name": "fact_id",
+            "required": true,
+            "schema": {
+              "description": "Existing L2/L3 fact id",
+              "minLength": 1,
+              "title": "Fact Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L4AnalysisPreviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Analysis Preview",
+        "tags": [
+          "l4-analysis"
+        ]
+      }
+    },
+    "/api/v1/l5/recommendations/draft": {
+      "post": {
+        "operationId": "create_recommendation_draft_api_v1_l5_recommendations_draft_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/L5RecommendationDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L5RecommendationDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Recommendation Draft",
+        "tags": [
+          "l5-recommendations"
+        ]
+      }
+    },
+    "/api/v1/l6/execution-responses": {
+      "post": {
+        "operationId": "create_execution_response_api_v1_l6_execution_responses_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/L6ExecutionResponseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L6ExecutionResponseResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Execution Response",
+        "tags": [
+          "l6-execution"
+        ]
+      }
+    },
+    "/api/v1/l7/feedback": {
+      "post": {
+        "operationId": "create_feedback_candidate_api_v1_l7_feedback_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/L7FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L7FeedbackResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Feedback Candidate",
+        "tags": [
+          "l7-feedback"
+        ]
+      }
+    },
+    "/api/v1/manual-confirmation/pending": {
+      "get": {
+        "operationId": "list_pending_api_v1_manual_confirmation_pending_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingConfirmationListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Pending",
+        "tags": [
+          "manual-confirmation"
+        ]
+      },
+      "post": {
+        "operationId": "create_pending_api_v1_manual_confirmation_pending_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PendingConfirmationCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingConfirmationItem"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Pending",
+        "tags": [
+          "manual-confirmation"
+        ]
+      }
+    },
+    "/api/v1/manual-confirmation/review": {
+      "post": {
+        "operationId": "review_api_v1_manual_confirmation_review_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualConfirmationReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualConfirmationReviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review",
+        "tags": [
+          "manual-confirmation"
+        ]
+      }
+    },
+    "/api/v1/s1/runtime-context/current": {
+      "get": {
+        "operationId": "current_runtime_context_api_v1_s1_runtime_context_current_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeContextResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Current Runtime Context",
+        "tags": [
+          "s1-runtime-context"
+        ]
+      }
+    },
+    "/api/v1/s2/governance/check": {
+      "post": {
+        "operationId": "check_governance_api_v1_s2_governance_check_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S2GovernanceCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S2GovernanceCheckResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Check Governance",
+        "tags": [
+          "s2-governance"
+        ]
+      }
+    },
+    "/api/v1/s3/trace/summary": {
+      "get": {
+        "operationId": "read_trace_summary_api_v1_s3_trace_summary_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "source_fact_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Fact Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "trace_ref",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Trace Ref"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S3TraceSummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Trace Summary",
+        "tags": [
+          "s3-trace"
+        ]
+      }
+    },
+    "/api/v1/upload/files": {
+      "post": {
+        "operationId": "upload_file_api_v1_upload_files_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadFileStoredResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload File",
+        "tags": [
+          "upload"
+        ]
+      }
+    },
+    "/api/v1/voice-transcription/transcribe": {
+      "post": {
+        "operationId": "transcribe_voice_api_v1_voice_transcription_transcribe_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Compass-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-User-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Organization-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Organization-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Role"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Compass-Project-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Compass-Project-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceTranscriptionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transcribe Voice",
+        "tags": [
+          "voice-transcription"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Check"
+      }
+    }
+  }
+}

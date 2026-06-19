@@ -1,4 +1,4 @@
-# frontend/src/types
+# apps/h5/src/types
 
 本目录只放跨页面、跨模块共享的前端通用类型。
 
@@ -21,8 +21,8 @@
 
 模块私有类型必须留在对应模块内，例如：
 
-- `frontend/src/modules/input_flow/types.ts`
-- `frontend/src/modules/standard_governance/*`
-- `frontend/src/modules/facts_view/*`
+- `apps/h5/src/modules/input_flow/types.ts`
+- `apps/h5/src/modules/standard_governance/*`
+- `apps/h5/src/modules/facts_view/*`
 
-不得把所有类型集中搬入本目录。全局标准治理规则统一归口到 `frontend/src/modules/standard_governance/`，业务模块只消费规则，不重复定义。
+不得把所有类型集中搬入本目录。全局标准治理规则统一归口到 `apps/h5/src/modules/standard_governance/`，业务模块只消费规则，不重复定义。

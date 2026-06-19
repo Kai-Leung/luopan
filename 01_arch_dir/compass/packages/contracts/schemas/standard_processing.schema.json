@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "standard_processing",
+  "type": "object",
+  "$defs": {
+    "StandardProcessingDirection": {
+      "enum": [
+        "readonly",
+        "draft",
+        "response",
+        "candidate",
+        "blocked",
+        "need_supplement",
+        "need_confirmation",
+        "failed"
+      ]
+    },
+    "StandardErrorResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error_code",
+        "message",
+        "processing_direction"
+      ],
+      "properties": {
+        "error_code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "processing_direction": {
+          "$ref": "#/$defs/StandardProcessingDirection"
+        }
+      }
+    },
+    "StandardSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_stage",
+        "source_id"
+      ],
+      "properties": {
+        "source_stage": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": "string"
+        }
+      }
+    },
+    "StandardTraceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_ref",
+        "created_at"
+      ],
+      "properties": {
+        "trace_ref": {
+          "type": "string"
+        },
+        "source_fact_id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "StandardBoundaryNotice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "processing_direction",
+        "readonly",
+        "no_write_l2",
+        "message"
+      ],
+      "properties": {
+        "processing_direction": {
+          "$ref": "#/$defs/StandardProcessingDirection"
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "no_write_l2": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

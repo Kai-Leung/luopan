@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "access_control",
+  "type": "object",
+  "required": ["organization_id", "role_ids", "project_scope_mode", "allowed_actions"],
+  "properties": {
+    "organization_id": { "type": "string" },
+    "role_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "project_scope_mode": {
+      "enum": ["organization", "selected_projects"]
+    },
+    "selected_project_id": {
+      "type": ["string", "null"]
+    },
+    "allowed_actions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

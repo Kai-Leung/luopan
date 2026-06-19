@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "L2Fact",
+  "description": "Source of truth fact layer - creates confirmed facts after governance",
+  "definitions": {
+    "L2FactCreateRequest": {
+      "type": "object",
+      "required": [
+        "raw_input_id",
+        "candidate_id",
+        "governance_id",
+        "review_id",
+        "review_status",
+        "fact_type",
+        "fact_payload"
+      ],
+      "properties": {
+        "raw_input_id": {
+          "type": "string"
+        },
+        "candidate_id": {
+          "type": "string"
+        },
+        "governance_id": {
+          "type": "string"
+        },
+        "review_id": {
+          "type": "string"
+        },
+        "review_status": {
+          "type": "string"
+        },
+        "fact_type": {
+          "type": "string"
+        },
+        "fact_payload": {
+          "type": "object"
+        }
+      }
+    },
+    "L2FactResponse": {
+      "type": "object",
+      "required": [
+        "fact_id",
+        "fact_status",
+        "fact_payload",
+        "raw_input_id",
+        "candidate_id",
+        "governance_id",
+        "review_id",
+        "message"
+      ],
+      "properties": {
+        "fact_id": {
+          "type": "string"
+        },
+        "fact_status": {
+          "type": "string",
+          "const": "active_fact"
+        },
+        "fact_payload": {
+          "type": "object"
+        },
+        "raw_input_id": {
+          "type": "string"
+        },
+        "candidate_id": {
+          "type": "string"
+        },
+        "governance_id": {
+          "type": "string"
+        },
+        "review_id": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

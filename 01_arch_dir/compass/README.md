@@ -1,14 +1,28 @@
-# Compass 罗盘系统工程目录骨架
+# Compass 罗盘系统 Monorepo
 
 目录架构版本：ARCH_DIR_v0.1.0
 
-本压缩包只包含最终目录骨架、占位文件和基础规则说明，不包含业务代码、依赖目录、构建产物、真实数据、密钥或环境文件。
+当前代码根目录已经采用 `apps/`、`services/`、`packages/` 的 Monorepo 结构，不再使用 `frontend/`、`backend/` 旧目录。
 
 核心口径：
 - S1/S2/S3 = 横向架构。
 - L0-L7 = 纵向业务链路。
-- H5 当前为主前端，后续进入原生壳。
-- services/api 为 FastAPI 后端主系统。
-- contracts 约束前后端字段与处理方向。
-- data/storage 仅保留占位，不提交真实数据。
+- `apps/h5` 为 H5 主交互应用。
+- `apps/pc` 为 PC 治理工作台。
+- `apps/mobile-shell` 为 Capacitor 原生壳。
+- `services/api` 为 FastAPI 后端主系统。
+- `packages/contracts` 约束前后端字段与处理方向。
+- `packages/shared-types`、`packages/shared-utils`、`packages/native-bridge` 承接共享边界。
+- `data/`、`storage/` 不纳入真实业务数据和文件。
 
+前端 workspace 依赖统一在代码根目录安装，不在子项目生成独立锁文件：
+
+```bash
+npm ci
+```
+
+统一静态检查：
+
+```bash
+npm run check
+```

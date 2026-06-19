@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "UploadOriginalStorage",
+  "description": "Original file upload storage response. Upload does not create candidates or facts.",
+  "definitions": {
+    "UploadFileStoredResponse": {
+      "type": "object",
+      "required": [
+        "upload_id",
+        "filename",
+        "content_type",
+        "file_size",
+        "storage_path",
+        "saved"
+      ],
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "content_type": {
+          "type": "string"
+        },
+        "file_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10485760
+        },
+        "storage_path": {
+          "type": "string"
+        },
+        "saved": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-# frontend/src/utils
+# apps/h5/src/utils
 
 本目录只放前端通用工具函数。
 
@@ -17,4 +17,4 @@
 - 业务治理判断。
 - API 调用封装。
 
-全局标准治理规则统一归口到 `frontend/src/modules/standard_governance/`，业务模块只消费规则，不重复定义。
+全局标准治理规则统一归口到 `apps/h5/src/modules/standard_governance/`，业务模块只消费规则，不重复定义。

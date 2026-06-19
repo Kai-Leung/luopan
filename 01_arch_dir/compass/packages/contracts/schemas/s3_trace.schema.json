@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "s3_trace",
+  "description": "Compatibility alias. Canonical S3 contract lives in s3_audit_trace.schema.json.",
+  "$ref": "s3_audit_trace.schema.json"
+}

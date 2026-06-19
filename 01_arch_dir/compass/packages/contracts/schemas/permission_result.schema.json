@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "permission_result",
+  "type": "object",
+  "required": ["action", "allowed"],
+  "properties": {
+    "action": { "type": "string" },
+    "allowed": { "type": "boolean" },
+    "denied_reason": {
+      "type": ["string", "null"]
+    }
+  },
+  "additionalProperties": false
+}

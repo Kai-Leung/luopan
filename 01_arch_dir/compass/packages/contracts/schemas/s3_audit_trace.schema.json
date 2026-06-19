@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "s3_audit_trace",
+  "type": "object",
+  "$defs": {
+    "S3TraceSummaryRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_fact_id": {
+          "type": "string"
+        },
+        "trace_ref": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "source_fact_id"
+          ]
+        },
+        {
+          "required": [
+            "trace_ref"
+          ]
+        }
+      ]
+    },
+    "S3TraceEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_ref",
+        "created_at",
+        "source_stage",
+        "target_stage",
+        "action_type",
+        "actor_id",
+        "organization_id",
+        "readonly",
+        "no_write_l2"
+      ],
+      "properties": {
+        "trace_ref": {
+          "type": "string"
+        },
+        "source_fact_id": {
+          "type": "string"
+        },
+        "raw_input_id": {
+          "type": "string"
+        },
+        "candidate_id": {
+          "type": "string"
+        },
+        "governance_id": {
+          "type": "string"
+        },
+        "review_id": {
+          "type": "string"
+        },
+        "analysis_id": {
+          "type": "string"
+        },
+        "recommendation_id": {
+          "type": "string"
+        },
+        "execution_response_id": {
+          "type": "string"
+        },
+        "feedback_id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_stage": {
+          "type": "string"
+        },
+        "target_stage": {
+          "type": "string"
+        },
+        "action_type": {
+          "type": "string"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "organization_id": {
+          "type": "string"
+        },
+        "readonly": {
+          "const": true
+        },
+        "no_write_l2": {
+          "const": true
+        }
+      }
+    },
+    "S3TraceSummaryResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_ref",
+        "chain_summary",
+        "events",
+        "no_write_l2"
+      ],
+      "properties": {
+        "trace_ref": {
+          "type": "string"
+        },
+        "source_fact_id": {
+          "type": "string"
+        },
+        "chain_summary": {
+          "type": "string"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/S3TraceEvent"
+          }
+        },
+        "no_write_l2": {
+          "const": true
+        }
+      }
+    }
+  }
+}

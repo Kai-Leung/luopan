@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "l5_recommendation",
+  "type": "object",
+  "$defs": {
+    "L5RecommendationDraftRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "analysis_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_fact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_payload": {
+          "type": "object"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "analysis_id"
+          ]
+        },
+        {
+          "required": [
+            "source_fact_id"
+          ]
+        }
+      ]
+    },
+    "L5RecommendationDraftResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recommendation_id",
+        "recommendation_status",
+        "processing_direction",
+        "recommendation_summary",
+        "auto_executable",
+        "created_at"
+      ],
+      "properties": {
+        "recommendation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recommendation_status": {
+          "const": "draft"
+        },
+        "source_fact_id": {
+          "type": "string"
+        },
+        "analysis_id": {
+          "type": "string"
+        },
+        "trace_ref": {
+          "type": "string"
+        },
+        "processing_direction": {
+          "const": "draft"
+        },
+        "recommendation_summary": {
+          "type": "string"
+        },
+        "auto_executable": {
+          "const": false
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "standard_error": {
+          "$ref": "standard_processing.schema.json#/$defs/StandardErrorResult"
+        }
+      }
+    }
+  },
+  "properties": {
+    "draft_request": {
+      "$ref": "#/$defs/L5RecommendationDraftRequest"
+    },
+    "draft_response": {
+      "$ref": "#/$defs/L5RecommendationDraftResponse"
+    }
+  }
+}

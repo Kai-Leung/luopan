@@ -1,4 +1,4 @@
-# backend/app/system_constants
+# services/api/app/system_constants
 
 ## 目录职责
 

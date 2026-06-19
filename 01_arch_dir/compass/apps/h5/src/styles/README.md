@@ -1,4 +1,4 @@
-# frontend/src/styles
+# apps/h5/src/styles
 
 本目录只放全局样式或跨组件样式入口。
 

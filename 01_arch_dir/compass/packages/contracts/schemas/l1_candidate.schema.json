@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "L1Candidate",
+  "description": "Candidate extraction layer - converts raw input into structured candidates",
+  "definitions": {
+    "L1CandidateCreate": {
+      "type": "object",
+      "required": [
+        "raw_input_id",
+        "raw_payload",
+        "source_type"
+      ],
+      "properties": {
+        "raw_input_id": {
+          "type": "string"
+        },
+        "input_session_id": {
+          "type": "string"
+        },
+        "supplement_candidate_id": {
+          "type": "string"
+        },
+        "raw_payload": {
+          "type": "object",
+          "description": "Raw input payload with processing context"
+        },
+        "source_type": {
+          "type": "string",
+          "description": "Source type enum value"
+        }
+      }
+    },
+    "L1CandidateItem": {
+      "type": "object",
+      "required": [
+        "candidate_id",
+        "input_session_id",
+        "raw_input_id",
+        "candidate_status",
+        "candidate_payload"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string"
+        },
+        "input_session_id": {
+          "type": "string"
+        },
+        "raw_input_id": {
+          "type": "string"
+        },
+        "candidate_status": {
+          "type": "string",
+          "description": "Candidate status enum"
+        },
+        "candidate_payload": {
+          "type": "object",
+          "description": "Structured candidate payload"
+        }
+      }
+    },
+    "L1CandidateResponse": {
+      "type": "object",
+      "required": [
+        "candidate_id",
+        "input_session_id",
+        "raw_input_id",
+        "candidate_status",
+        "candidate_payload",
+        "candidates",
+        "message"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string"
+        },
+        "input_session_id": {
+          "type": "string"
+        },
+        "raw_input_id": {
+          "type": "string"
+        },
+        "candidate_status": {
+          "type": "string"
+        },
+        "candidate_payload": {
+          "type": "object"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/L1CandidateItem"
+          }
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

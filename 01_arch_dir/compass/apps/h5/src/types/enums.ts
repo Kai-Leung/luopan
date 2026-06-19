@@ -2,7 +2,7 @@
  * 前端全局类型边界。
  *
  * 本目录不承载业务治理规则、字段规则、枚举标准或 S2 决策口径。
- * 全局标准治理规则统一归口到 frontend/src/modules/standard_governance。
+ * 全局标准治理规则统一归口到 apps/h5/src/modules/standard_governance。
  */
 
 export type LegacyUnderstandingRecordType =

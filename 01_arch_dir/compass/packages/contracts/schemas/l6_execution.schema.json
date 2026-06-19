@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "l6_execution",
+  "type": "object",
+  "$defs": {
+    "L6ExecutionResponseRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_note",
+        "execution_status"
+      ],
+      "properties": {
+        "recommendation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_fact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "execution_note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "execution_status": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "recommendation_id"
+          ]
+        },
+        {
+          "required": [
+            "source_fact_id"
+          ]
+        }
+      ]
+    },
+    "L6ExecutionResponseResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_response_id",
+        "execution_status",
+        "processing_direction",
+        "execution_note",
+        "creates_fact",
+        "created_at"
+      ],
+      "properties": {
+        "execution_response_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "execution_status": {
+          "type": "string"
+        },
+        "recommendation_id": {
+          "type": "string"
+        },
+        "source_fact_id": {
+          "type": "string"
+        },
+        "trace_ref": {
+          "type": "string"
+        },
+        "processing_direction": {
+          "const": "response"
+        },
+        "execution_note": {
+          "type": "string"
+        },
+        "creates_fact": {
+          "const": false
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "standard_error": {
+          "$ref": "standard_processing.schema.json#/$defs/StandardErrorResult"
+        }
+      }
+    }
+  },
+  "properties": {
+    "response_request": {
+      "$ref": "#/$defs/L6ExecutionResponseRequest"
+    },
+    "response_response": {
+      "$ref": "#/$defs/L6ExecutionResponseResponse"
+    }
+  }
+}

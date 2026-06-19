@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "L3QueryView",
+  "description": "Query view layer - reads source-of-truth facts with list + detail",
+  "definitions": {
+    "L3FactViewResponse": {
+      "type": "object",
+      "required": ["fact_id", "fact_type", "fact_payload", "fact_status", "created_at"],
+      "properties": {
+        "fact_id": { "type": "string" },
+        "fact_type": { "type": "string" },
+        "fact_payload": { "type": "object" },
+        "fact_status": { "type": "string", "const": "active_fact" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "L3FactListItem": {
+      "type": "object",
+      "required": ["fact_id", "fact_type", "fact_payload_summary", "source_type", "fact_status", "created_at"],
+      "properties": {
+        "fact_id": { "type": "string" },
+        "fact_type": { "type": "string" },
+        "fact_payload_summary": { "type": "string", "description": "Human-readable summary extracted from fact_payload" },
+        "source_type": { "type": "string", "description": "Source type from fact_payload or raw_input chain" },
+        "fact_status": { "type": "string", "const": "active_fact" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "L3FactListResponse": {
+      "type": "object",
+      "required": ["items", "total"],
+      "properties": {
+        "items": { "type": "array", "items": { "$ref": "#/definitions/L3FactListItem" } },
+        "total": { "type": "integer", "description": "Total count matching filters (ignores pagination)" }
+      }
+    }
+  }
+}
