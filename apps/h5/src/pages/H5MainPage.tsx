@@ -112,6 +112,7 @@ export default function H5MainPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [factQueryOpen, setFactQueryOpen] = useState(false);
+  const [factQueryKeyword, setFactQueryKeyword] = useState('');
   const [runtimeContext, setRuntimeContext] = useState<RuntimeContextResponse | null>(null);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<InteractionMessage[]>(loadStoredMessages);
@@ -274,6 +275,10 @@ export default function H5MainPage() {
       await queryExistingFacts(value);
       return;
     }
+    if (action === '问') {
+      openFactAnalysis(value);
+      return;
+    }
     if (!shouldSubmitToL0(action)) {
       const message = getUnavailableActionMessage(action);
       appendMessage({ type: 'status', action, content: message });
@@ -386,10 +391,27 @@ export default function H5MainPage() {
   }
 
   function getUnavailableActionMessage(action: InteractionAction): string {
-    if (action === '问') {
-      return '现在还不能直接分析。我可以先帮你查已有记录，或把要记录的情况先整理下来。';
-    }
     return `${action}暂时还不能处理，请先用文字记录或查询已有记录。`;
+  }
+
+  function openFactAnalysis(keyword: string, voiceSourceLabel?: string) {
+    const normalizedKeyword = keyword.trim();
+    if (!normalizedKeyword) {
+      appendMessage({ type: 'status', action: '问', content: '想分析什么？可以直接输入项目、事项或关键词。' });
+      return;
+    }
+    setFactQueryKeyword(normalizedKeyword);
+    setFactQueryOpen(true);
+    appendMessage({
+      type: 'status',
+      action: '问',
+      content: [
+        voiceSourceLabel ? `已识别语音：${voiceSourceLabel}` : '',
+        `我会先从已有正式事实中查找「${normalizedKeyword}」，并加载匹配记录的分析预览。`,
+        '分析预览不产生正式事实；后续建议、执行响应和反馈仍需在详情中人工触发。',
+      ].filter(Boolean).join('\n'),
+    });
+    showToast('正在查找相关事实并加载分析预览。');
   }
 
   async function queryExistingFacts(keyword: string) {
@@ -584,8 +606,7 @@ export default function H5MainPage() {
       await queryExistingFacts(transcript);
       return;
     }
-    appendMessage({ type: 'status', action: '问', content: `已识别语音：${sourceLabel}\n你问的是：${transcript}\n现在还不能直接分析，我可以先帮你查相关记录。` });
-    showToast('现在还不能直接分析。');
+    openFactAnalysis(transcript, sourceLabel);
   }
 
   function isVoiceAction(action: InteractionAction): action is VoiceAction {
@@ -696,7 +717,7 @@ export default function H5MainPage() {
         <button className="h5-header-btn" onClick={() => setDrawerOpen(true)} aria-label="打开侧边菜单"><Hamburger /></button>
         <h1 className="h5-header-title">罗盘</h1>
         <div className="h5-header-spacer" aria-hidden="true" />
-        <button className="h5-header-btn" onClick={() => setFactQueryOpen(true)} title="查询事实">📋</button>
+        <button className="h5-header-btn" onClick={() => { setFactQueryKeyword(''); setFactQueryOpen(true); }} title="查询事实">📋</button>
       </header>
 
       <section className="h5-task-card">
@@ -790,7 +811,16 @@ export default function H5MainPage() {
         void handleFileInput(event.target.files);
         event.currentTarget.value = '';
       }} />
-      {factQueryOpen && <FactQueryPanel onClose={() => setFactQueryOpen(false)} />}
+      {factQueryOpen && (
+        <FactQueryPanel
+          initialKeyword={factQueryKeyword}
+          autoAnalyzeFirstMatch={Boolean(factQueryKeyword)}
+          onClose={() => {
+            setFactQueryOpen(false);
+            setFactQueryKeyword('');
+          }}
+        />
+      )}
       <RenderStageMarker stage="H5MainPage 子组件渲染完成" />
     </div>
   );

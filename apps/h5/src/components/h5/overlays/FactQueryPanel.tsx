@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { L3FactListResponse, L3FactViewResponse } from '../../../modules/facts_view/types';
 import { getL4AnalysisPreview } from '../../../modules/l4_analysis/api';
 import type { L4AnalysisPreviewResponse } from '../../../modules/l4_analysis/types';
@@ -12,15 +12,21 @@ import { getL3FactDetail, listL3Facts } from '../../../modules/l3_query_view/api
 
 interface FactQueryPanelProps {
   onClose: () => void;
+  initialKeyword?: string;
+  autoAnalyzeFirstMatch?: boolean;
 }
 
-export default function FactQueryPanel({ onClose }: FactQueryPanelProps) {
+export default function FactQueryPanel({
+  onClose,
+  initialKeyword = '',
+  autoAnalyzeFirstMatch = false,
+}: FactQueryPanelProps) {
   const [items, setItems] = useState<L3FactListResponse['items']>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [filterType, setFilterType] = useState('');
-  const [filterKeyword, setFilterKeyword] = useState('');
+  const [filterKeyword, setFilterKeyword] = useState(initialKeyword);
   const [selectedFact, setSelectedFact] = useState<L3FactViewResponse | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [analysisPreview, setAnalysisPreview] = useState<L4AnalysisPreviewResponse | null>(null);
@@ -35,6 +41,51 @@ export default function FactQueryPanel({ onClose }: FactQueryPanelProps) {
   const [feedbackCandidate, setFeedbackCandidate] = useState<L7FeedbackResponse | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackError, setFeedbackError] = useState('');
+  const autoAnalyzeConsumedRef = useRef(false);
+
+  const loadAnalysisPreview = async (fact: L3FactViewResponse) => {
+    setAnalysisLoading(true);
+    setAnalysisError('');
+    setAnalysisPreview(null);
+    setRecommendationDraft(null);
+    setRecommendationError('');
+    setExecutionResponse(null);
+    setExecutionError('');
+    setFeedbackCandidate(null);
+    setFeedbackError('');
+    try {
+      const preview = await getL4AnalysisPreview(fact.fact_id);
+      setAnalysisPreview(preview);
+    } catch (e: unknown) {
+      setAnalysisError(e instanceof Error ? e.message : '分析预览加载失败');
+    } finally {
+      setAnalysisLoading(false);
+    }
+  };
+
+  const handleViewDetail = async (factId: string, loadPreview = false) => {
+    setDetailLoading(true);
+    setSelectedFact(null);
+    setAnalysisPreview(null);
+    setAnalysisError('');
+    setRecommendationDraft(null);
+    setRecommendationError('');
+    setExecutionResponse(null);
+    setExecutionError('');
+    setFeedbackCandidate(null);
+    setFeedbackError('');
+    try {
+      const detail = await getL3FactDetail(factId);
+      setSelectedFact(detail);
+      if (loadPreview) {
+        await loadAnalysisPreview(detail);
+      }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : '加载失败');
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const loadList = useCallback(async (appended = false) => {
     setLoading(true);
@@ -49,6 +100,10 @@ export default function FactQueryPanel({ onClose }: FactQueryPanelProps) {
       });
       setItems(appended ? [...items, ...res.items] : res.items);
       setTotal(res.total);
+      if (!appended && autoAnalyzeFirstMatch && !autoAnalyzeConsumedRef.current && res.items.length > 0) {
+        autoAnalyzeConsumedRef.current = true;
+        await handleViewDetail(res.items[0].fact_id, true);
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : '加载失败');
     } finally {
@@ -64,46 +119,9 @@ export default function FactQueryPanel({ onClose }: FactQueryPanelProps) {
     loadList();
   };
 
-  const handleViewDetail = async (factId: string) => {
-    setDetailLoading(true);
-    setSelectedFact(null);
-    setAnalysisPreview(null);
-    setAnalysisError('');
-    setRecommendationDraft(null);
-    setRecommendationError('');
-    setExecutionResponse(null);
-    setExecutionError('');
-    setFeedbackCandidate(null);
-    setFeedbackError('');
-    try {
-      const detail = await getL3FactDetail(factId);
-      setSelectedFact(detail);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : '加载失败');
-    } finally {
-      setDetailLoading(false);
-    }
-  };
-
   const handleLoadAnalysisPreview = async () => {
     if (!selectedFact) return;
-    setAnalysisLoading(true);
-    setAnalysisError('');
-    setAnalysisPreview(null);
-    setRecommendationDraft(null);
-    setRecommendationError('');
-    setExecutionResponse(null);
-    setExecutionError('');
-    setFeedbackCandidate(null);
-    setFeedbackError('');
-    try {
-      const preview = await getL4AnalysisPreview(selectedFact.fact_id);
-      setAnalysisPreview(preview);
-    } catch (e: unknown) {
-      setAnalysisError(e instanceof Error ? e.message : '分析预览加载失败');
-    } finally {
-      setAnalysisLoading(false);
-    }
+    await loadAnalysisPreview(selectedFact);
   };
 
   const handleCreateRecommendationDraft = async () => {
@@ -228,7 +246,7 @@ export default function FactQueryPanel({ onClose }: FactQueryPanelProps) {
             <div
               key={item.fact_id}
               className="fact-list-item"
-              onClick={() => handleViewDetail(item.fact_id)}
+              onClick={() => { void handleViewDetail(item.fact_id); }}
             >
               <div className="fact-item-header">
                 <span className={`fact-type-badge fact-type-${item.fact_type}`}>{item.fact_type}</span>
