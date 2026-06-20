@@ -7,14 +7,19 @@
 node_modules/
 dist/
 build/
+coverage/
 .cache/
 .vite/
 .vercel/
+playwright-report/
+test-results/
 
 # Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
 venv/
 
@@ -41,13 +46,18 @@ logs/
 
 # OS
 .DS_Store
+__MACOSX/
 
 # 开发文档、任务卡、报告——不进 GitHub，不上服务器
 02_development_basis/
 03_control/
 04_task_cards/
 05_reports/
-AGENTS.md
 FIRST_CLOUD_TASK_PROMPT.md
 manifest.json
-/README.md
+/工作记录及报告/
+/开发依据文档/
+
+# 根治理文件必须进入版本控制
+!README.md
+!AGENTS.md

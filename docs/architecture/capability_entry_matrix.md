@@ -1,64 +1,43 @@
 # 能力接入矩阵
 
-本矩阵用于记录开发依据映射到当前代码后的实际承接状态。状态口径只允许使用：
+状态口径：
 
-- `placeholder`：只有目录、README 或接口占位。
-- `implemented`：已有真实代码，但尚未形成完整验证证据。
-- `verified`：已有代码并存在对应自动化或联调验证记录。
+- `placeholder`：只有目录、README、配置或空入口。
+- `implemented`：存在真实实现，但自动化或验收尚未全绿。
+- `verified`：对应自动化检查在当前基线通过。
 - `accepted`：正向、负向、一致性、回归和独立验收均完成。
 
-任何 `placeholder`、`implemented` 或 `verified` 能力都不得表述为阶段完成。
+目录、路由、类型、build 成功或历史报告都不能单独证明业务能力已验收。
 
 ## 当前基线
 
-| 能力域 | 当前状态 | 已有承接 | 主要缺口 | 下一闭环 |
-|---|---|---|---|---|
-| 标准治理与 contracts | `implemented` | 后端治理规则、JSON Schema、OpenAPI、共享类型 | 缺少自动一致性检查和单一生成链 | 契约真源闭环 |
-| S1 运行上下文 | `placeholder` | H5 本地项目识别和类型占位 | 后端身份、组织、角色、访问范围未挂载 | S1 权限闭环 |
-| L0 原始输入 | `verified` | 原始输入 API、数据库记录、负向校验 | 未统一强制绑定 S1 上下文 | 可信输入闭环 |
-| L1 候选 | `verified` | 候选生成、拆分、补充候选和测试 | 候选仍缺完整对象资产映射 | 候选治理闭环 |
-| S2 治理闸门 | `verified` | 待补、待确认、阻断、风险与权限提示 | 权限依赖局部字段，不依赖真实 S1 | 治理权限闭环 |
-| 人工确认 | `verified` | pending、confirm、reject、return | 缺少并发版本和完整审计事件 | 确认审计闭环 |
-| L2 正式事实 | `verified` | 确认链校验、正式事实写入、负向拦截 | 组织和项目隔离尚未成为强约束 | 真源隔离闭环 |
-| L3 查询视图 | `verified` | 列表、详情、关键词过滤、只读约束 | 缺少后端权限裁剪和脱敏 | 权限查询闭环 |
-| L4 分析 | `implemented` | 基于事实的只读规则化预览 | 不持久化、不是完整分析能力 | 分析记录闭环 |
-| L5 建议 | `implemented` | 建议草稿和禁止自动执行标记 | 不持久化、引用只做格式校验 | 建议审计闭环 |
-| L6 执行响应 | `implemented` | 执行响应对象和不写 L2 约束 | 不持久化、不执行真实受控动作 | 执行响应闭环 |
-| L7 反馈回流 | `implemented` | 反馈候选和回流标记 | 未真正回到 L0/L1/S2 | 双回流闭环 |
-| S3 审计追溯 | `implemented` | 最小只读追溯摘要 | 事件临时生成，无持久化来源链 | 持久化追溯闭环 |
-| 对象资产 | `placeholder` | 项目资产局部确认逻辑 | 组织、主体、物资、资料资产未实现 | 资产证据闭环 |
-| 上传与文件存储 | `implemented` | 本地原文件存储、格式和大小校验 | Storage Service 抽象和资料绑定未完成 | 文件证据闭环 |
-| 语音转写 | `implemented` | 浏览器录音、供应商适配边界 | 真实供应商协议未接入 | 语音输入闭环 |
-| H5 | `implemented` | 真实 L0-L7 API 交互和主要状态展示 | Mock 入口、本地 S1、空事项和弱网恢复 | H5 生产化闭环 |
-| PC | `placeholder` | 页面模块目录占位 | 无可运行应用 | PC 治理闭环 |
-| Android / iOS | `placeholder` | mobile-shell 与 bridge README | Capacitor 尚未启用 | Android App 闭环 |
-| AI 辅助 | `placeholder` | 后端模块边界占位 | 无真实受控 AI 能力 | AI 候选闭环 |
-| 外部协同 | `placeholder` | 前后端模块边界占位 | 无输入、反馈、回执和脱敏链路 | 外协回流闭环 |
-| 自动验收与部署 | `implemented` | 后端测试和历史联调报告 | scripts/ 与顶层 acceptance 仍为空 | 阶段准出闭环 |
+| 能力域 | 状态 | 当前代码证据 | 当前限制 |
+|---|---|---|---|
+| Contracts | `verified` | FastAPI OpenAPI、24 个 JSON Schema、contracts consistency 脚本 | 检查通过不代表业务接口已验收 |
+| S1 运行上下文 | `implemented` | 后端 runtime-context、统一 dependency、H5/PC 上下文请求 | pytest 存在 `ContextVar` 跨线程重置失败 |
+| L0-L3 事实主链路 | `implemented` | 原始输入、候选、S2、人工确认、L2 持久化、L3 查询 | 后端测试套件当前非全绿 |
+| L4-L7 | `implemented` | 分析、建议、执行响应、反馈持久化与 H5 操作入口 | 受 S1 测试失败影响，不能标记 verified |
+| S2 治理闸门 | `implemented` | 必填、风险、阻断、补充和确认规则 | 存在候选解析相关失败 |
+| S3 审计追溯 | `implemented` | trace event 持久化与摘要查询 | 测试基线未全绿 |
+| 上传与文件存储 | `implemented` | 原文件 API、类型/大小校验、H5 上传入口 | 本地存储实现，不等同生产存储服务验收 |
+| 语音转写 | `implemented` | 浏览器录音、后端适配入口和 H5 flow | 供应商凭据和真实协议未形成生产验收 |
+| AI 辅助 | `implemented` | 后端候选 intake 与回流边界 | 测试受 S1 失败影响，不是自主裁决能力 |
+| 外部协同 | `implemented` | 外部反馈 intake 与候选回流 | 测试受 S1 失败影响，脱敏与回执仍需验收 |
+| H5 | `implemented` | 可构建 React/Vite 应用，接入主要 API 和状态流 | 无完整前端自动化业务测试 |
+| PC | `implemented` | 可构建治理工作台，接入上下文、确认和事实查询 | 无完整前端自动化业务测试 |
+| Mobile shell | `placeholder` | Capacitor 配置和依赖 | 未生成/提交原生工程，未完成签名和真机验收 |
+| 对象资产 | `placeholder` | 目录和局部类型/接口边界 | 尚无完整资产闭环证据 |
+| CI | `implemented` | PR/main 检查 frontend、contracts、repository policy、pytest | pytest 会执行并报告既有失败，修复基线前暂不阻断治理 PR |
+| Deploy | `implemented` | 独立 GitHub Actions workflow | 仅允许人工触发，不代表已执行部署 |
 
-## 递进准入顺序
+## 当前自动化事实
 
-后续开发必须按以下顺序推进，后一项不得替代前一项：
+- `npm ci`：通过。
+- `npm run check`：治理前的 TypeScript 与 contracts 检查通过。
+- H5 build：通过。
+- PC build：通过。
+- contracts consistency：通过。
+- pytest：当前基线为 `183 passed, 50 failed, 4 warnings`。
 
-1. 契约真源。
-2. S1 身份、组织、角色和访问范围。
-3. L0-L3 可信事实主链路。
-4. 对象资产与资料证据。
-5. S3 持久化审计。
-6. L4-L7 持久化和双回流。
-7. H5 生产化。
-8. PC 治理工作台。
-9. Android App。
-10. AI 与外部协同。
-11. 自动化准出与部署。
-
-## 统一准出条件
-
-每个能力从 `implemented` 或 `verified` 进入 `accepted` 前，必须同时满足：
-
-1. contracts、后端 Schema 和前端类型一致。
-2. 正向场景有自动化证据。
-3. 越权、绕过 S2、反写 L2、失败隐藏等负向场景有证据。
-4. 页面只承接后端状态，不本地伪造正式结果。
-5. 来源、动作、版本和处理方向可追溯。
-6. 独立执行器完成回归并形成报告。
+在 pytest 恢复全绿并完成对应业务验收前，不得把 S1-S3、L0-L7 或整体系统标记为
+`verified` 或 `accepted`。
