@@ -27,7 +27,7 @@
 | PC | `implemented` | 可构建治理工作台，接入上下文、确认和事实查询 | 无完整前端自动化业务测试 |
 | Mobile shell | `placeholder` | Capacitor 配置和依赖 | 未生成/提交原生工程，未完成签名和真机验收 |
 | 对象资产 | `placeholder` | 目录和局部类型/接口边界 | 尚无完整资产闭环证据 |
-| CI | `implemented` | PR/main 检查 frontend、contracts、repository policy、pytest | pytest 当前会严格暴露既有失败 |
+| CI | `implemented` | PR/main 检查 frontend、contracts、repository policy、pytest | pytest 会执行并报告既有失败，修复基线前暂不阻断治理 PR |
 | Deploy | `implemented` | 独立 GitHub Actions workflow | 仅允许人工触发，不代表已执行部署 |
 
 ## 当前自动化事实
