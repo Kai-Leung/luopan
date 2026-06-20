@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  repository-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check repository policy
+        run: python3 scripts/check/repository_policy.py
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Node dependencies
+        run: npm ci
+      - name: TypeScript and contracts checks
+        run: npm run check
+      - name: Build H5
+        run: npm run build --workspace @compass/h5
+      - name: Build PC
+        run: npm run build --workspace @compass/pc
+      - name: Check contracts explicitly
+        run: python3 scripts/check/contracts_consistency.py
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/api/requirements.txt
+      - name: Install backend dependencies
+        run: python3 -m pip install -r services/api/requirements.txt
+      - name: Run pytest
+        working-directory: services/api
+        run: python3 -m pytest -q
