@@ -2,6 +2,14 @@ name: Deploy Compass
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'services/api/**'
+      - 'apps/h5/**'
+      - 'apps/pc/**'
+      - 'packages/**'
+      - '.github/workflows/deploy.yml'
 
 jobs:
   deploy:
