@@ -14,30 +14,33 @@
 | 能力域 | 状态 | 当前代码证据 | 当前限制 |
 |---|---|---|---|
 | Contracts | `verified` | FastAPI OpenAPI、24 个 JSON Schema、contracts consistency 脚本 | 检查通过不代表业务接口已验收 |
-| S1 运行上下文 | `implemented` | 后端 runtime-context、统一 dependency、H5/PC 上下文请求 | pytest 存在 `ContextVar` 跨线程重置失败 |
-| L0-L3 事实主链路 | `implemented` | 原始输入、候选、S2、人工确认、L2 持久化、L3 查询 | 后端测试套件当前非全绿 |
-| L4-L7 | `implemented` | 分析、建议、执行响应、反馈持久化与 H5 操作入口 | 受 S1 测试失败影响，不能标记 verified |
-| S2 治理闸门 | `implemented` | 必填、风险、阻断、补充和确认规则 | 存在候选解析相关失败 |
-| S3 审计追溯 | `implemented` | trace event 持久化与摘要查询 | 测试基线未全绿 |
-| 上传与文件存储 | `implemented` | 原文件 API、类型/大小校验、H5 上传入口 | 本地存储实现，不等同生产存储服务验收 |
+| S1 运行上下文 | `verified` | async dependency、正常/异常清理、连续请求、组织和跨项目隔离测试 | 当前为受控单组织基线，不是完整账号体系验收 |
+| L0-L3 事实主链路 | `verified` | 原始输入、候选、S2、pending active/resolved 持久化、人工确认、L2、L3 与重启读取测试 | 未完成独立人工业务验收 |
+| L4-L7 | `verified` | 分析、建议、执行响应、反馈持久化、只读/不直写 L2 测试 | 未完成业务效果与人工验收 |
+| S2 治理闸门 | `verified` | 必填、风险、阻断、补充、确认和候选解析回归测试 | 规则效果仍需真实场景验收 |
+| S3 审计追溯 | `verified` | trace event 持久化与 L4-L7 来源链测试 | 未完成运维审计验收 |
+| 上传与文件存储 | `verified` | 原文件 API、类型/大小校验、路径验证和 H5 上传入口 | 本地存储实现，不等同生产存储服务验收 |
 | 语音转写 | `implemented` | 浏览器录音、后端适配入口和 H5 flow | 供应商凭据和真实协议未形成生产验收 |
 | AI 辅助 | `implemented` | 后端候选 intake 与回流边界 | 测试受 S1 失败影响，不是自主裁决能力 |
 | 外部协同 | `implemented` | 外部反馈 intake 与候选回流 | 测试受 S1 失败影响，脱敏与回执仍需验收 |
-| H5 | `implemented` | 可构建 React/Vite 应用，接入主要 API 和状态流 | 无完整前端自动化业务测试 |
-| PC | `implemented` | 可构建治理工作台，接入上下文、确认和事实查询 | 无完整前端自动化业务测试 |
+| H5 | `verified` | React/Vite build；意图分流、L0-L3、项目上下文、阻断、确认与错误路径自动化 | 缺少浏览器 E2E 和独立人工验收 |
+| PC | `verified` | React/Vite build；上下文、pending、facts、确认/退回/驳回和错误路径自动化 | 缺少浏览器 E2E 和独立人工验收 |
 | Mobile shell | `placeholder` | Capacitor 配置和依赖 | 未生成/提交原生工程，未完成签名和真机验收 |
 | 对象资产 | `placeholder` | 目录和局部类型/接口边界 | 尚无完整资产闭环证据 |
-| CI | `implemented` | PR/main 检查 frontend、contracts、repository policy、pytest | pytest 会执行并报告既有失败，修复基线前暂不阻断治理 PR |
-| Deploy | `implemented` | 独立 GitHub Actions workflow | 仅允许人工触发，不代表已执行部署 |
+| CI | `verified` | repository-policy、frontend、contracts、backend、integration 均为强制门禁，无 `continue-on-error` | GitHub 分支保护仍需仓库管理员确认 |
+| Deploy | `implemented` | CI 全绿后由 main 运行代码变更调用 reusable workflow；部署前后检查服务器工作区并校验目标 SHA | 当前只重启后端，未包含 H5/PC 静态发布；本任务未实际部署 |
 
 ## 当前自动化事实
 
 - `npm ci`：通过。
-- `npm run check`：治理前的 TypeScript 与 contracts 检查通过。
+- `npm run check`：通过。
 - H5 build：通过。
 - PC build：通过。
+- H5 tests：6 passed。
+- PC tests：5 passed。
 - contracts consistency：通过。
-- pytest：当前基线为 `183 passed, 50 failed, 4 warnings`。
+- pytest：`253 passed, 0 failed, 5 warnings`（系统 Python 环境额外报告 httpx/httpx2 兼容弃用提示）。
+- integration：8 passed。
 
-在 pytest 恢复全绿并完成对应业务验收前，不得把 S1-S3、L0-L7 或整体系统标记为
-`verified` 或 `accepted`。
+上述 `verified` 仅表示当前自动化证据通过。未完成独立人工验收的能力不得标记为
+`accepted`，也不得宣称系统已完成业务验收。

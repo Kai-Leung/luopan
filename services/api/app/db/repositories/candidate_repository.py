@@ -54,11 +54,15 @@ def update_candidate_status(
     *,
     candidate_id: str,
     candidate_status: str,
+    commit: bool = True,
 ) -> Optional[Candidate]:
     row = get_candidate(db, candidate_id)
     if row is None:
         return None
     row.candidate_status = candidate_status
-    db.commit()
-    db.refresh(row)
+    if commit:
+        db.commit()
+        db.refresh(row)
+    else:
+        db.flush()
     return row

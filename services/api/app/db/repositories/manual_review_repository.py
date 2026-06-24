@@ -16,6 +16,7 @@ def create_manual_review(
     review_status: str,
     policy_decision: str,
     reviewed_at,
+    commit: bool = True,
 ) -> ManualReview:
     row = ManualReview(
         review_id=review_id,
@@ -26,8 +27,11 @@ def create_manual_review(
         reviewed_at=reviewed_at,
     )
     db.add(row)
-    db.commit()
-    db.refresh(row)
+    if commit:
+        db.commit()
+        db.refresh(row)
+    else:
+        db.flush()
     return row
 
 

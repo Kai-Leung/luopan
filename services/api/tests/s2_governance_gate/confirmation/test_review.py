@@ -1,13 +1,24 @@
+from datetime import datetime, timezone
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
+from sqlalchemy import inspect, text
 
-from app.db.repositories import get_project_asset
-from app.db.session import SessionLocal
+from app.db.models import ManualReview, PendingConfirmation
+from app.db.repositories import (
+    ensure_minimal_storage_tables,
+    get_project_asset,
+    resolve_pending_confirmation,
+)
+from app.db.session import SessionLocal, engine
 from app.modules.s2_governance_gate.confirmation.router import router
 from app.modules.s2_governance_gate.confirmation.service import (
     MANUAL_CONFIRMATION_STORE,
     PENDING_CONFIRMATION_QUEUE,
 )
+
+pytestmark = pytest.mark.usefixtures("reset_workflow_state")
 
 app = FastAPI()
 app.include_router(router, prefix="/api/v1")
@@ -423,3 +434,235 @@ def test_same_candidate_cannot_enter_pending_confirmation_twice():
     assert first.status_code == 200
     assert second.status_code == 400
     assert len(PENDING_CONFIRMATION_QUEUE) == 1
+
+
+@pytest.mark.parametrize(
+    ("review_action", "expected_review_status"),
+    [
+        ("confirm", "confirmed_candidate"),
+        ("return_for_completion", "returned_for_completion"),
+        ("reject", "rejected_candidate"),
+    ],
+)
+def test_review_resolves_pending_and_removes_it_from_active_list(
+    review_action,
+    expected_review_status,
+):
+    created = client.post(
+        "/api/v1/manual-confirmation/pending",
+        json={
+            "raw_input_id": f"raw_resolve_{review_action}",
+            "candidate_id": f"cand_resolve_{review_action}",
+            "governance_id": f"gov_resolve_{review_action}",
+            "governance_status": "auto_pass",
+            "fact_type": "construction_record",
+            "fact_payload": {"text": "今天张工在宝山项目记录普通事项"},
+            "display_text": "今天张工在宝山项目记录普通事项",
+        },
+    ).json()
+
+    reviewed = client.post(
+        "/api/v1/manual-confirmation/review",
+        json={
+            "pending_id": created["pending_id"],
+            "governance_id": created["governance_id"],
+            "governance_status": created["governance_status"],
+            "review_action": review_action,
+        },
+    )
+
+    assert reviewed.status_code == 200
+    assert reviewed.json()["review_status"] == expected_review_status
+    assert client.get("/api/v1/manual-confirmation/pending").json()["items"] == []
+
+    db = SessionLocal()
+    try:
+        row = (
+            db.query(PendingConfirmation)
+            .filter(PendingConfirmation.pending_id == created["pending_id"])
+            .one()
+        )
+        assert row.pending_status == "resolved"
+        assert row.resolved_action == review_action
+        assert row.resolved_at is not None
+        assert row.review_id == reviewed.json()["review_id"]
+        assert db.query(ManualReview).filter(
+            ManualReview.review_id == row.review_id
+        ).count() == 1
+    finally:
+        db.close()
+
+
+def test_resolved_pending_stays_hidden_after_memory_reset():
+    created = client.post(
+        "/api/v1/manual-confirmation/pending",
+        json={
+            "raw_input_id": "raw_resolved_restart",
+            "candidate_id": "cand_resolved_restart",
+            "governance_id": "gov_resolved_restart",
+            "governance_status": "auto_pass",
+            "fact_type": "construction_record",
+            "fact_payload": {"text": "重启后不应再次出现"},
+            "display_text": "重启后不应再次出现",
+        },
+    ).json()
+    reviewed = client.post(
+        "/api/v1/manual-confirmation/review",
+        json={
+            "pending_id": created["pending_id"],
+            "governance_id": created["governance_id"],
+            "governance_status": created["governance_status"],
+            "review_action": "confirm",
+        },
+    )
+    assert reviewed.status_code == 200
+
+    PENDING_CONFIRMATION_QUEUE.clear()
+
+    assert client.get("/api/v1/manual-confirmation/pending").json()["items"] == []
+
+
+def test_same_pending_cannot_be_reviewed_twice():
+    created = client.post(
+        "/api/v1/manual-confirmation/pending",
+        json={
+            "raw_input_id": "raw_review_twice",
+            "candidate_id": "cand_review_twice",
+            "governance_id": "gov_review_twice",
+            "governance_status": "auto_pass",
+            "fact_type": "construction_record",
+            "fact_payload": {"text": "重复审核"},
+            "display_text": "重复审核",
+        },
+    ).json()
+    payload = {
+        "pending_id": created["pending_id"],
+        "governance_id": created["governance_id"],
+        "governance_status": created["governance_status"],
+        "review_action": "confirm",
+    }
+
+    first = client.post("/api/v1/manual-confirmation/review", json=payload)
+    second = client.post("/api/v1/manual-confirmation/review", json=payload)
+
+    assert first.status_code == 200
+    assert second.status_code == 409
+    db = SessionLocal()
+    try:
+        assert db.query(ManualReview).filter(
+            ManualReview.governance_id == created["governance_id"]
+        ).count() == 1
+    finally:
+        db.close()
+
+
+def test_conditional_pending_resolution_allows_only_one_success():
+    created = client.post(
+        "/api/v1/manual-confirmation/pending",
+        json={
+            "raw_input_id": "raw_atomic_review",
+            "candidate_id": "cand_atomic_review",
+            "governance_id": "gov_atomic_review",
+            "governance_status": "auto_pass",
+            "fact_type": "construction_record",
+            "fact_payload": {"text": "条件更新审核"},
+            "display_text": "条件更新审核",
+        },
+    ).json()
+
+    first_db = SessionLocal()
+    second_db = SessionLocal()
+    try:
+        first = resolve_pending_confirmation(
+            first_db,
+            pending_id=created["pending_id"],
+            review_id="review_atomic_1",
+            resolved_action="confirm",
+            resolved_at=datetime.now(timezone.utc),
+        )
+        first_db.commit()
+        second = resolve_pending_confirmation(
+            second_db,
+            pending_id=created["pending_id"],
+            review_id="review_atomic_2",
+            resolved_action="confirm",
+            resolved_at=datetime.now(timezone.utc),
+        )
+        second_db.commit()
+    finally:
+        first_db.close()
+        second_db.close()
+
+    assert first is True
+    assert second is False
+
+
+def test_legacy_pending_table_is_upgraded_without_losing_rows():
+    PendingConfirmation.__table__.drop(bind=engine)
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE pending_confirmations (
+                    id INTEGER PRIMARY KEY,
+                    pending_id VARCHAR NOT NULL UNIQUE,
+                    input_session_id VARCHAR NOT NULL,
+                    raw_input_id VARCHAR NOT NULL,
+                    candidate_id VARCHAR NOT NULL UNIQUE,
+                    governance_id VARCHAR NOT NULL,
+                    governance_status VARCHAR NOT NULL,
+                    fact_type VARCHAR NOT NULL,
+                    fact_payload TEXT NOT NULL,
+                    display_text TEXT NOT NULL,
+                    required_permission VARCHAR,
+                    created_at DATETIME NOT NULL
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO pending_confirmations (
+                    pending_id, input_session_id, raw_input_id, candidate_id,
+                    governance_id, governance_status, fact_type, fact_payload,
+                    display_text, created_at
+                ) VALUES (
+                    'pending_legacy', 'session_legacy', 'raw_legacy',
+                    'cand_legacy', 'gov_legacy', 'auto_pass',
+                    'construction_record', '{"text":"旧待确认"}',
+                    '旧待确认', CURRENT_TIMESTAMP
+                )
+                """
+            )
+        )
+
+    ensure_minimal_storage_tables()
+    columns = {
+        column["name"]
+        for column in inspect(engine).get_columns("pending_confirmations")
+    }
+    assert {
+        "pending_status",
+        "resolved_at",
+        "review_id",
+        "resolved_action",
+    }.issubset(columns)
+
+    db = SessionLocal()
+    try:
+        legacy = db.query(PendingConfirmation).filter(
+            PendingConfirmation.pending_id == "pending_legacy"
+        ).one()
+        assert legacy.pending_status == "active"
+        assert legacy.resolved_at is None
+        assert legacy.review_id is None
+        assert legacy.resolved_action is None
+    finally:
+        db.close()
+
+    ensure_minimal_storage_tables()
+    listed = client.get("/api/v1/manual-confirmation/pending")
+    assert [item["pending_id"] for item in listed.json()["items"]] == [
+        "pending_legacy"
+    ]

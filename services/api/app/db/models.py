@@ -37,6 +37,27 @@ class GovernanceResult(Base):
     created_at = Column(DateTime(timezone=True), nullable=False)
 
 
+class PendingConfirmation(Base):
+    __tablename__ = "pending_confirmations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    pending_id = Column(String, unique=True, nullable=False, index=True)
+    input_session_id = Column(String, nullable=False, index=True)
+    raw_input_id = Column(String, nullable=False, index=True)
+    candidate_id = Column(String, unique=True, nullable=False, index=True)
+    governance_id = Column(String, nullable=False, index=True)
+    governance_status = Column(String, nullable=False)
+    fact_type = Column(String, nullable=False)
+    fact_payload = Column(Text, nullable=False)
+    display_text = Column(Text, nullable=False)
+    required_permission = Column(String, nullable=True)
+    pending_status = Column(String, nullable=False, default="active", index=True)
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+    review_id = Column(String, nullable=True, index=True)
+    resolved_action = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+
+
 class ManualReview(Base):
     __tablename__ = "manual_reviews"
 

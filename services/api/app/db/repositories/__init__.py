@@ -3,6 +3,13 @@ from .fact_record_repository import create_fact_record, get_fact_record, get_fac
 from .governance_repository import create_governance_result, get_governance_result
 from .json_utils import load_json_field
 from .manual_review_repository import create_manual_review, get_manual_review, get_manual_review_by_governance_id
+from .pending_confirmation_repository import (
+    create_pending_confirmation_record,
+    get_pending_confirmation,
+    get_pending_confirmation_by_candidate_id,
+    list_pending_confirmation_records,
+    resolve_pending_confirmation,
+)
 from .project_asset_repository import create_project_asset, get_project_asset, list_project_assets
 from .progression_repository import (
     create_analysis_record,
@@ -28,6 +35,7 @@ __all__ = [
     "create_fact_record",
     "create_governance_result",
     "create_manual_review",
+    "create_pending_confirmation_record",
     "create_project_asset",
     "create_raw_input",
     "create_recommendation_record",
@@ -43,10 +51,14 @@ __all__ = [
     "get_feedback_record",
     "get_manual_review",
     "get_manual_review_by_governance_id",
+    "get_pending_confirmation",
+    "get_pending_confirmation_by_candidate_id",
     "get_project_asset",
     "get_recommendation_record",
     "get_raw_input",
     "list_project_assets",
+    "list_pending_confirmation_records",
+    "resolve_pending_confirmation",
     "list_audit_events",
     "load_json_field",
     "update_candidate_payload",

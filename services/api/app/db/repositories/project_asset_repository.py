@@ -20,6 +20,7 @@ def create_project_asset(
     created_at,
     confirmed_by: Optional[str],
     confirmation_id: str,
+    commit: bool = True,
 ) -> ProjectAsset:
     row = ProjectAsset(
         project_asset_id=project_asset_id,
@@ -34,8 +35,11 @@ def create_project_asset(
         confirmation_id=confirmation_id,
     )
     db.add(row)
-    db.commit()
-    db.refresh(row)
+    if commit:
+        db.commit()
+        db.refresh(row)
+    else:
+        db.flush()
     return row
 
 

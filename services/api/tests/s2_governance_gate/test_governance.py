@@ -571,4 +571,4 @@ def test_multi_candidate_input_runs_s2_per_candidate():
     assert {result.input_session_id for result in results} == {"session_multi_s2"}
     assert all(result.next_action in {"ask_more", "need_confirm", "blocked"} for result in results)
     assert any("请补充项目" in result.question_prompts for result in results)
-    assert any("请补充供应商或相关主体" in result.question_prompts for result in results)
+    assert all("请补充供应商或相关主体" not in result.question_prompts for result in results)

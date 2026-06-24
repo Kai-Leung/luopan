@@ -8,8 +8,9 @@ Compass 是围绕可信事实链路构建的前后端 Monorepo。纵向链路使
 
 - H5：可运行的 React/Vite 应用，承接录入、L3 查询、L4-L7 交互、上传、语音转写入口和人工确认流程。前端不裁决权限、S2 结果或正式事实。
 - PC：可运行的 React/Vite 治理工作台，展示运行上下文、待确认事项和正式事实，并调用后端执行人工审核。
+- Pending confirmation：数据库保存 active/resolved 生命周期；人工审核完成后保留历史记录，但不再出现在待确认列表。
 - Mobile shell：已配置 Capacitor 壳和 H5 构建目录；原生工程生成、签名与真机验收不在仓库基线内。
-- API：FastAPI 服务，包含 S1-S3、L0-L7、上传、语音、AI 辅助和外部反馈入口。测试套件当前存在已知失败，不能表述为已全部验收。
+- API：FastAPI 模块化单体，包含 S1-S3、L0-L7、上传、语音、AI 辅助和外部反馈入口。自动化测试已归零，但尚未完成独立人工业务验收。
 - Contracts：保存运行时 OpenAPI 快照和跨模块 JSON Schema，并提供一致性检查脚本。
 
 ## 目录结构
@@ -76,11 +77,13 @@ H5 默认端口为 `5173`，PC 默认端口为 `5174`。
 npm run check
 npm run build --workspace @compass/h5
 npm run build --workspace @compass/pc
+npm test --workspace @compass/h5
+npm test --workspace @compass/pc
 python3 scripts/check/contracts_consistency.py
 cd services/api && python3 -m pytest -q
 ```
 
-- `npm run check` 是 TypeScript、contracts 和仓库策略检查，不是业务测试。
+- `npm run check` 是 TypeScript、contracts 和仓库策略检查；H5/PC 测试和 pytest 需分别执行。
 - build 成功只证明可构建，不代表业务验收完成。
 - pytest 失败必须如实记录，不得通过修改业务规则来掩盖。
 
@@ -90,7 +93,10 @@ cd services/api && python3 -m pytest -q
 2. 只提交任务范围内文件。
 3. 运行与改动匹配的检查。
 4. push 分支并创建以 `main` 为 base 的 Pull Request。
-5. CI 只检查，不部署；部署 workflow 只能人工触发。
-6. 未经人工审核不得合并或部署。
+5. Pull Request 和开发分支只运行 CI，不触发生产部署。
+6. `main` 的运行代码变更只有在 repository policy、frontend、contracts、backend 和 integration 全部成功后，才自动调用部署 workflow。
+7. 文档或纯 Markdown 变更不触发生产部署；`workflow_dispatch` 保留人工触发能力。
+8. 自动部署前后都要求服务器 Git 工作区干净，并校验部署后的 HEAD 等于指定 commit SHA。
+9. 未经人工审核不得合并；任何失败检查都不得被部署绕过。
 
 仓库执行边界见 `AGENTS.md`，真实能力状态见 `docs/architecture/capability_entry_matrix.md`。

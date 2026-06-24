@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from contextvars import ContextVar
 from hashlib import sha256
-from typing import Iterator, Optional
+from typing import AsyncIterator, Optional
 
 from fastapi import Header, HTTPException, Request
 
@@ -138,13 +138,13 @@ def resolve_runtime_context(
     )
 
 
-def require_runtime_context(
+async def require_runtime_context(
     request: Request,
     user_id: Optional[str] = Header(None, alias="X-Compass-User-Id"),
     organization_id: Optional[str] = Header(None, alias="X-Compass-Organization-Id"),
     role_id: Optional[str] = Header(None, alias="X-Compass-Role"),
     selected_project_id: Optional[str] = Header(None, alias="X-Compass-Project-Id"),
-) -> Iterator[RuntimeContextResponse]:
+) -> AsyncIterator[RuntimeContextResponse]:
     context = resolve_runtime_context(
         user_id=user_id,
         organization_id=organization_id,

@@ -102,8 +102,20 @@ def test_asr_provider_details_are_not_saved_in_l0_payload():
 
     assert response.status_code == 200
     record = RAW_INPUT_MEMORY_STORE[0]
-    assert record.raw_payload == {
-        "text": "语音录入后的原始文字",
-        "image_ref": None,
-        "file_ref": None,
-    }
+    assert record.raw_payload["text"] == "语音录入后的原始文字"
+    assert record.raw_payload["image_ref"] is None
+    assert record.raw_payload["file_ref"] is None
+    assert record.raw_payload["input_session_id"]
+    assert "idempotency_key" in record.raw_payload
+    assert record.raw_payload["_runtime_context"]
+    assert not {
+        "native_speech",
+        "backend_asr",
+        "xfyun",
+        "provider",
+        "asr_provider",
+        "transcription_source",
+        "speech_provider",
+        "voice_model",
+        "api_provider",
+    }.intersection(record.raw_payload)

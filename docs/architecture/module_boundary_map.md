@@ -13,3 +13,6 @@
 
 模块目录或 README 存在只说明边界被预留。实现状态以
 `capability_entry_matrix.md` 和自动化结果为准。
+
+当前仍为 Monorepo + FastAPI 模块化单体。pending confirmation 已纳入同一数据库
+持久化边界；没有引入微服务、消息队列或新的数据库框架。

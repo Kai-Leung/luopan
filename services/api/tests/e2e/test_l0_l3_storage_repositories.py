@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from app.db.base import Base
+from app.db.models import FactRecord
 from app.db.repositories import (
     get_candidate,
     get_governance_result,
@@ -134,7 +134,7 @@ def test_manual_review_writes_and_reads_review():
         db.close()
 
 
-def test_confirmed_candidate_does_not_create_formal_fact_table():
+def test_confirmed_candidate_does_not_create_formal_fact_record():
     review_confirmation(
         ManualConfirmationReviewRequest(
             governance_id="gov_002",
@@ -143,7 +143,11 @@ def test_confirmed_candidate_does_not_create_formal_fact_table():
         )
     )
 
-    assert "fact_records" not in Base.metadata.tables
+    db = SessionLocal()
+    try:
+        assert db.query(FactRecord).count() == 0
+    finally:
+        db.close()
 
 
 def test_blocked_governance_status_cannot_review():

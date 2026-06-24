@@ -26,4 +26,8 @@
 
 - TypeScript check、build、contracts 检查和 pytest 必须分别如实报告。
 - 既有失败不得隐藏；禁止为了让治理检查通过而修改业务逻辑。
-- CI 只负责检查。部署必须人工触发，且不得由普通 `main` push 自动执行。
+- Pull Request 和开发分支只运行 CI，不得部署。
+- `main` 的运行代码变更只有在全部必需 CI 检查成功后才可自动部署；docs-only 变更不得部署。
+- 部署 workflow 不得直接监听 `push`，必须由 CI 门禁调用，同时保留 `workflow_dispatch`。
+- 生产部署前后必须验证服务器 Git 工作区干净，并确认最终 HEAD 与指定部署 SHA 完全一致；不得自动 reset、clean 或 stash。
+- 自动化执行器不得使用 `[skip ci]` 绕过 CI、部署、依赖、业务代码或测试验证。

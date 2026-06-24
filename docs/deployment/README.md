@@ -100,8 +100,29 @@ VITE_API_BASE_URL=http://localhost:8000
 ## Git / CI
 
 - 仓库：`git@github.com:Kai-Leung/luopan.git`
-- 部署方式：SCP 打包上传 / 未来 GitHub Actions 自动部署
-- Workflow 文件：`.github/workflows/deploy.yml`
+- CI workflow：`.github/workflows/ci.yml`
+- 部署 workflow：`.github/workflows/deploy.yml`
+- Pull Request 和开发分支只运行 CI，不部署。
+- `main` push 必须先通过 repository-policy、frontend、contracts、backend 和 integration。
+- 仅运行代码路径变化时，CI 才自动调用 reusable deploy workflow。
+- README、`docs/**` 和纯 Markdown 变更默认不部署。
+- `workflow_dispatch` 保留手动部署能力。
+- 生产部署使用通过 CI 的 commit SHA、`git fetch`、`git merge --ff-only`、后端重启及 `/health` 校验。
+- 更新前后均检查 tracked、staged 和未跟踪文件；工作区不干净时立即失败，不执行 reset、clean、stash 或服务重启。
+- 更新后 `git rev-parse HEAD` 必须严格等于部署目标 SHA。
+
+## 当前部署真实性
+
+当前 workflow 的生产动作只有：
+
+1. 确认 `/root/compass` 是有效且干净的 Git 工作区。
+2. 将 `/root/compass` 快进到指定 commit SHA，并核对最终 HEAD。
+3. 重启 `compass-backend`。
+4. 验证 `/health` 返回 `status=ok` 且 `service=Compass`。
+
+仓库中没有 H5/PC build 产物复制到 `/www/wwwroot/82.156.128.251` 的自动化步骤。
+因此当前受控自动部署仅能确认后端更新；H5/PC 静态发布仍是集成验收前缺口，
+不得描述为已经自动部署。本治理任务没有实际触发部署。
 
 ## 已知限制
 
@@ -109,3 +130,4 @@ VITE_API_BASE_URL=http://localhost:8000
 2. 后端 ASR 未配置（预留讯飞接口）
 3. 无域名绑定，仅通过 IP 访问
 4. 前端为静态 H5，无 SSR
+5. 自动部署仍使用 root + password；后续应改为专用 deploy 用户、SSH key、最小权限、release 目录和自动回滚
